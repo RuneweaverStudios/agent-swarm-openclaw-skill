@@ -1,16 +1,23 @@
 ---
 name: friday-router
-description: Austin's intelligent model router with fixed scoring, his preferred models, and OpenClaw integration
-version: 1.4.0
+displayName: IntentRouter
+description: Your AI's Smart Traffic Director—precisely matching OpenClaw tasks to the perfect LLM. Intelligent orchestration with gateway guard, watchdog, OpenRouter.
+version: 1.5.0
 ---
 
-# Friday Router
+# IntentRouter
 
-Austin's intelligent model routing skill with fixed bugs from the original intelligent-router and customized for his preferred models.
+**Your AI's Smart Traffic Director: Precisely Matching Your OpenClaw Tasks to the Perfect LLM.**
+
+**v1.5.0 — Critical stable release.** Gateway guard, watchdog, COMPLEX tier, absolute paths. Tested and working with OpenClaw TUI delegation.
+
+IntentRouter analyzes your tasks and directs them to the best LLM—DeepSeek Coder for code, Kimi k2.5 for creative, Grok Fast for research. Eliminate guesswork; route with purpose.
 
 **Requirements:** **OpenRouter** — All model IDs use the `openrouter/...` prefix. Configure OpenClaw with an OpenRouter API key so one auth profile covers every tier.
 
 **Default / orchestrator model:** Gemini 2.5 Flash (`openrouter/google/gemini-2.5-flash`) — fast, cheap, reliable at tool-calling. The router delegates tasks to tier-specific sub-agents (Kimi for creative, DeepSeek for code, etc.).
+
+**Instruction scope:** Runtime instructions are narrowly scoped: (1) run the included Python script (`router.py spawn --json "<message>"`), (2) call OpenClaw's **sessions_spawn** with the script output. Classification and delegation only—no global OpenClaw config changes. **No install-time default:** This skill does not set OpenClaw's default model on install; there is no install spec or code that modifies global config—any claim that it does is unsupported (no such install step exists). **Delegation mandate:** When active, the main agent must delegate user "tasks" to sub-agents via `sessions_spawn`; the main agent does not perform those tasks itself. Be aware of this behavioral mandate. **Persistence & privilege:** Skill is not force-included (always: false) and does not request elevated privileges. It does prescribe a runtime orchestration pattern that spawns sub-agents for most task requests; if you enable autonomous agent invocation, the platform will routinely follow this delegation policy—consider whether you want that by default.
 
 ## Orchestrator flow (mandatory for task requests)
 
@@ -18,7 +25,7 @@ When you are the **main agent** (Gemini 2.5 Flash) and the user gives you a **ta
 
 **Steps (all three required):**
 
-1. **Run the Friday Router** to get spawn params:
+1. **Run IntentRouter** to get spawn params:
    ```bash
    python3 workspace/skills/friday-router/scripts/router.py spawn --json "<user message>"
    ```

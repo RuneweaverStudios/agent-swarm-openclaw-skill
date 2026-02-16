@@ -1,7 +1,7 @@
 {
-  "name": "Friday Router",
-  "description": "Austin's intelligent model router with fixed scoring, his preferred models, and OpenClaw integration",
-  "version": "1.4.0",
+  "name": "IntentRouter",
+  "description": "Your AI's Smart Traffic Director: Precisely Matching Your OpenClaw Tasks to the Perfect LLM. Intelligent LLM orchestration—DeepSeek Coder for code, Kimi k2.5 for creative, Grok Fast for research. Route with purpose.",
+  "version": "1.5.0",
   "author": "Austin",
   "default_model": "openrouter/google/gemini-2.5-flash",
   "models": [

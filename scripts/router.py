@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Friday Router - Austin's Intelligent Model Router
+IntentRouter - Your AI's Smart Traffic Director (friday-router skill)
 Version 1.4.0
 
 Fixed bugs from original intelligent-router:
@@ -352,7 +352,7 @@ class FridayRouter:
 def main():
     """CLI entry point."""
     if len(sys.argv) < 2:
-        print("Friday Router v1.4.0")
+        print("IntentRouter v1.5.0")
         print("\nUsage:")
         print("  router.py default                Show session default model (capable by default)")
         print("  router.py classify <task>       Classify task and recommend model")

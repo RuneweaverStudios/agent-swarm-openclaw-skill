@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Gateway auth guard for Friday Router.
+Gateway auth guard for IntentRouter (friday-router skill).
 
 Purpose:
 - Detect gateway auth drift (config vs running gateway process)

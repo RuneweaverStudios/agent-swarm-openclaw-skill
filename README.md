@@ -1,6 +1,22 @@
-# Friday Router
+# IntentRouter
 
-Austin's intelligent model routing skill for OpenClaw. Routes tasks to the right LLM by tier — capable by default, down-routes to cheaper models only when the task is clearly simple.
+**Your AI's Smart Traffic Director: Precisely Matching Your OpenClaw Tasks to the Perfect LLM.**
+
+**v1.5.0 — This version is tested and working.** Gateway guard, watchdog, COMPLEX tier, absolute paths for TUI delegation.
+
+IntentRouter is the intelligent LLM orchestration skill for OpenClaw. It precisely analyzes your tasks and directs them to the best LLM for the job—DeepSeek Coder for complex code, Kimi k2.5 for creative prose, Grok Fast for web research. Route with purpose; stop wasting resources.
+
+## Instruction scope (what this skill does)
+
+Runtime instructions tell the agent to: (1) run the included Python script (`router.py spawn --json "<message>"`), and (2) call OpenClaw's **sessions_spawn** with the script output. The instructions are **narrowly scoped** to **classification and delegating work to sub-agents**—nothing more.
+
+**Delegation mandate:** When the skill is active, the main agent is instructed to **delegate** user "tasks" (code, write, research, build, fix, etc.) to sub-agents via `sessions_spawn`. The main agent does not perform those tasks itself. Be aware of this behavioral mandate.
+
+**No install-time config change:** This skill does **not** set OpenClaw's default model on install. There is no install spec or code that modifies global OpenClaw config; any claim that the skill changes the default on install is **unsupported** (no such install step exists). The orchestrator/default model (e.g. Gemini 2.5 Flash) is defined in this skill's `config.json` and in your workspace agent instructions; your OpenClaw default is whatever you configure separately.
+
+## Persistence & privilege
+
+This skill is **not** force-included (always: false) and **does not request elevated privileges**. It does, however, prescribe a **runtime orchestration pattern** that causes the main agent to spawn sub-agents for most "task" requests. If you enable **autonomous agent invocation**, the platform will routinely follow this delegation policy—the main agent will delegate to other models by default. Consider whether you want that behavior before enabling autonomous invocation.
 
 ## Requirements
 
@@ -18,7 +34,7 @@ The router delegates tasks to tier-specific sub-agents (Kimi for creative, DeepS
 
 The **main agent (Gemini 2.5 Flash)** does not do user tasks itself. For every user **task** (code, research, write, build, etc.):
 
-1. Run the router: `python scripts/router.py spawn --json "<user message>"` and parse the JSON.
+1. Run IntentRouter: `python scripts/router.py spawn --json "<user message>"` and parse the JSON.
 2. Call **sessions_spawn** with the `task` and `model` from the router output (use the exact `model` value).
 3. Forward the sub-agent's result to the user.
 
