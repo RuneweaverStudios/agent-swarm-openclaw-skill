@@ -1,10 +1,10 @@
-# OpenRouterRouter | Codename: Centipede
+# IntentRouter
 
 **Your AI's Smart Traffic Director: Precisely Matching Your OpenClaw Tasks to the Perfect LLM.**
 
 **v1.5.0 — This version is tested and working.** Gateway guard, watchdog, COMPLEX tier, absolute paths for TUI delegation.
 
-OpenRouterRouter (codename: Centipede) is the intelligent LLM orchestration skill for OpenClaw. It precisely analyzes your tasks and directs them to the best LLM for the job—DeepSeek Coder for complex code, Kimi k2.5 for creative prose, Grok Fast for web research. Route with purpose; stop wasting resources.
+IntentRouter is the intelligent LLM orchestration skill for OpenClaw. It precisely analyzes your tasks and directs them to the best LLM for the job—DeepSeek Coder for complex code, Kimi k2.5 for creative prose, Grok Fast for web research. Route with purpose; stop wasting resources.
 
 ## Instruction scope (what this skill does)
 
@@ -34,7 +34,7 @@ The router delegates tasks to tier-specific sub-agents (Kimi for creative, DeepS
 
 The **main agent (Gemini 2.5 Flash)** does not do user tasks itself. For every user **task** (code, research, write, build, etc.):
 
-1. Run OpenRouterRouter: `python scripts/router.py spawn --json "<user message>"` and parse the JSON.
+1. Run IntentRouter: `python scripts/router.py spawn --json "<user message>"` and parse the JSON.
 2. Call **sessions_spawn** with the `task` and `model` from the router output (use the exact `model` value).
 3. Forward the sub-agent's result to the user.
 
@@ -53,11 +53,11 @@ router: {"task":"write a poem","model":"openrouter/moonshotai/kimi-k2.5","sessio
 
 ```bash
 npm install -g clawhub
-clawhub install friday-router
+clawhub install intent-router
 
-python scripts/gateway_guard.py status --json
-python scripts/router.py default
-python scripts/router.py classify "your task description"
+python workspace/skills/intent-router/scripts/gateway_guard.py status --json
+python workspace/skills/intent-router/scripts/router.py default
+python workspace/skills/intent-router/scripts/router.py classify "your task description"
 ```
 
 ---
@@ -92,16 +92,16 @@ python scripts/router.py classify "your task description"
 ## CLI usage
 
 ```bash
-python scripts/gateway_guard.py status --json              # Check gateway auth consistency
-python scripts/gateway_guard.py ensure --apply --json      # Auto-fix mismatch by restarting gateway
+python workspace/skills/intent-router/scripts/gateway_guard.py status --json              # Check gateway auth consistency
+python workspace/skills/intent-router/scripts/gateway_guard.py ensure --apply --json      # Auto-fix mismatch by restarting gateway
 # For automatic gateway recovery (every 10s), install the gateway-watchdog skill and run its install_watchdog.sh
-python scripts/router.py default                          # Show default model
-python scripts/router.py classify "fix lint errors"        # Classify → tier + model
-python scripts/router.py score "build a React auth system" # Detailed scoring
-python scripts/router.py cost "design a landing page"      # Cost estimate
-python scripts/router.py spawn "research best LLMs"        # Spawn params (human)
-python scripts/router.py spawn --json "research best LLMs" # JSON includes gatewayAuthMode + token/password + port
-python scripts/router.py models                            # List all models
+python workspace/skills/intent-router/scripts/router.py default                          # Show default model
+python workspace/skills/intent-router/scripts/router.py classify "fix lint errors"        # Classify → tier + model
+python workspace/skills/intent-router/scripts/router.py score "build a React auth system" # Detailed scoring
+python workspace/skills/intent-router/scripts/router.py cost "design a landing page"      # Cost estimate
+python workspace/skills/intent-router/scripts/router.py spawn "research best LLMs"        # Spawn params (human)
+python workspace/skills/intent-router/scripts/router.py spawn --json "research best LLMs" # JSON includes gatewayAuthMode + token/password + port
+python workspace/skills/intent-router/scripts/router.py models                            # List all models
 ```
 
 ---
@@ -109,9 +109,9 @@ python scripts/router.py models                            # List all models
 ## In-code usage
 
 ```python
-from scripts.router import FridayRouter
+from workspace.skills.intent-router.scripts.router import IntentRouter
 
-router = FridayRouter()
+router = IntentRouter()
 
 default = router.get_default_model()
 tier = router.classify_task("check server status")        # → "FAST"

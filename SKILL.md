@@ -1,17 +1,17 @@
 ---
-name: friday-router
-displayName: OpenRouterRouter | Codename: Centipede
-description: Your AI's Smart Traffic Director—precisely matching OpenClaw tasks to the perfect LLM. Intelligent orchestration with gateway guard, watchdog, OpenRouter.
+name: intent-router
+displayName: IntentRouter
+description: Optimize your OpenClaw agents' performance with IntentRouter, the intelligent LLM orchestration skill. This powerful tool precisely analyzes your tasks and directs them to the *best* LLM for the job—whether it's DeepSeek Coder for complex code, Kimi k2.5 for creative prose, or Grok Fast for deep dives into web research. IntentRouter eliminates guesswork, ensuring your agents achieve faster, more accurate, and more cost-effective results by aligning every task with the right AI expert. Upgrade your OpenClaw ecosystem into a high-efficiency powerhouse, allowing IntentRouter to manage the intelligent dispatch of your models. Stop wasting resources and start routing with purpose!
 version: 1.5.0
 ---
 
-# OpenRouterRouter | Codename: Centipede
+# IntentRouter
 
 **Your AI's Smart Traffic Director: Precisely Matching Your OpenClaw Tasks to the Perfect LLM.**
 
 **v1.5.0 — Critical stable release.** Gateway guard, watchdog, COMPLEX tier, absolute paths. Tested and working with OpenClaw TUI delegation.
 
-OpenRouterRouter (codename: Centipede) analyzes your tasks and directs them to the best LLM—DeepSeek Coder for code, Kimi k2.5 for creative, Grok Fast for research. Eliminate guesswork; route with purpose.
+IntentRouter analyzes your tasks and directs them to the best LLM—DeepSeek Coder for code, Kimi k2.5 for creative, Grok Fast for research. Eliminate guesswork; route with purpose.
 
 **Requirements:** **OpenRouter** — All model IDs use the `openrouter/...` prefix. Configure OpenClaw with an OpenRouter API key so one auth profile covers every tier.
 
@@ -25,9 +25,9 @@ When you are the **main agent** (Gemini 2.5 Flash) and the user gives you a **ta
 
 **Steps (all three required):**
 
-1. **Run OpenRouterRouter** to get spawn params:
+1. **Run IntentRouter** to get spawn params:
    ```bash
-   python3 workspace/skills/friday-router/scripts/router.py spawn --json "<user message>"
+   python3 workspace/skills/intent-router/scripts/router.py spawn --json "<user message>"
    ```
    Example output: `{"task":"write a poem about Mai","model":"openrouter/moonshotai/kimi-k2.5","sessionTarget":"isolated","gatewayAuthMode":"token","gatewayToken":"...","gatewayPort":18789}`
 
