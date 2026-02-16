@@ -1,0 +1,155 @@
+{
+  "name": "Friday Router",
+  "description": "Austin's intelligent model router with fixed scoring, his preferred models, and OpenClaw integration",
+  "version": "1.0.0",
+  "author": "Austin",
+  "models": [
+    {
+      "id": "google/gemini-1.5-flash",
+      "alias": "Gemini-Flash",
+      "tier": "FAST",
+      "provider": "google",
+      "input_cost_per_m": 0.075,
+      "output_cost_per_m": 0.30,
+      "context_window": 1000000,
+      "capabilities": ["text", "code", "vision"],
+      "use_for": ["fast responses", "monitoring", "status checks", "summaries"]
+    },
+    {
+      "id": "anthropic/claude-3-haiku",
+      "alias": "Haiku",
+      "tier": "FAST",
+      "provider": "anthropic",
+      "input_cost_per_m": 0.25,
+      "output_cost_per_m": 1.25,
+      "context_window": 200000,
+      "capabilities": ["text", "code"],
+      "use_for": ["fast responses", "fallback for flash"]
+    },
+    {
+      "id": "zhipu/glm-5",
+      "alias": "GLM-5",
+      "tier": "REASONING",
+      "provider": "zhipu",
+      "input_cost_per_m": 0.10,
+      "output_cost_per_m": 0.10,
+      "context_window": 128000,
+      "capabilities": ["text", "reasoning", "chain-of-thought"],
+      "use_for": ["reasoning", "math", "logic", "analysis"]
+    },
+    {
+      "id": "minimax/minimax-2.5",
+      "alias": "Minimax-2.5",
+      "tier": "REASONING",
+      "provider": "minimax",
+      "input_cost_per_m": 0.10,
+      "output_cost_per_m": 0.10,
+      "context_window": 128000,
+      "capabilities": ["text", "reasoning"],
+      "use_for": ["reasoning fallback"]
+    },
+    {
+      "id": "minimax/kimi-k2.5",
+      "alias": "Kimi-k2.5",
+      "tier": "CREATIVE",
+      "provider": "minimax",
+      "input_cost_per_m": 0.20,
+      "output_cost_per_m": 0.20,
+      "context_window": 128000,
+      "capabilities": ["text", "creative", "writing"],
+      "use_for": ["creative writing", "frontend design", "UI/UX", "stories"]
+    },
+    {
+      "id": "xai/grok-3-fast",
+      "alias": "Grok-Fast",
+      "tier": "RESEARCH",
+      "provider": "xai",
+      "input_cost_per_m": 0.10,
+      "output_cost_per_m": 0.10,
+      "context_window": 131072,
+      "capabilities": ["text", "research", "web search"],
+      "use_for": ["research", "web lookups", "fact-finding"]
+    },
+    {
+      "id": "deepseek-ai/deepseek-coder-v2",
+      "alias": "DeepSeek-Coder",
+      "tier": "CODE",
+      "provider": "deepseek",
+      "input_cost_per_m": 0.14,
+      "output_cost_per_m": 0.28,
+      "context_window": 65536,
+      "capabilities": ["text", "code"],
+      "use_for": ["code generation", "debugging", "refactoring"]
+    },
+    {
+      "id": "qwen/qwen2.5-coder",
+      "alias": "Qwen-Coder",
+      "tier": "CODE",
+      "provider": "qwen",
+      "input_cost_per_m": 0.10,
+      "output_cost_per_m": 0.10,
+      "context_window": 32768,
+      "capabilities": ["text", "code"],
+      "use_for": ["code fallback"]
+    },
+    {
+      "id": "anthropic/claude-3.5-sonnet",
+      "alias": "Sonnet",
+      "tier": "QUALITY",
+      "provider": "anthropic",
+      "input_cost_per_m": 3.00,
+      "output_cost_per_m": 15.00,
+      "context_window": 200000,
+      "capabilities": ["text", "code", "reasoning", "vision"],
+      "use_for": ["complex code", "architecture", "high-quality output"]
+    },
+    {
+      "id": "openai/gpt-4o",
+      "alias": "GPT-4o",
+      "tier": "VISION",
+      "provider": "openai",
+      "input_cost_per_m": 2.50,
+      "output_cost_per_m": 10.00,
+      "context_window": 128000,
+      "capabilities": ["text", "code", "vision"],
+      "use_for": ["image analysis", "vision tasks"]
+    }
+  ],
+  "routing_rules": {
+    "FAST": {
+      "primary": "google/gemini-1.5-flash",
+      "fallback": ["anthropic/claude-3-haiku"],
+      "keywords": ["check", "get", "list", "show", "status", "monitor", "fetch", "simple", "quick"]
+    },
+    "REASONING": {
+      "primary": "zhipu/glm-5",
+      "fallback": ["minimax/minimax-2.5"],
+      "keywords": ["reason", "prove", "logic", "analyze", "derive", "math", "think", "step by step"]
+    },
+    "CREATIVE": {
+      "primary": "minimax/kimi-k2.5",
+      "fallback": [],
+      "keywords": ["creative", "write", "story", "design", "UI", "UX", "frontend", "website", "style", "artistic"]
+    },
+    "RESEARCH": {
+      "primary": "xai/grok-3-fast",
+      "fallback": [],
+      "keywords": ["research", "find", "search", "lookup", "web", "information", "fact", "review"]
+    },
+    "CODE": {
+      "primary": "deepseek-ai/deepseek-coder-v2",
+      "fallback": ["qwen/qwen2.5-coder"],
+      "keywords": ["code", "function", "class", "debug", "fix", "implement", "refactor", "lint", "test"]
+    },
+    "QUALITY": {
+      "primary": "anthropic/claude-3.5-sonnet",
+      "fallback": ["openai/gpt-4o"],
+      "keywords": ["complex", "architecture", "design", "system", "comprehensive", "thorough"]
+    },
+    "VISION": {
+      "primary": "openai/gpt-4o",
+      "fallback": [],
+      "keywords": ["image", "picture", "photo", "screenshot", "visual", "analyze image"]
+    }
+  }
+}

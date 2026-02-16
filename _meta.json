@@ -1,0 +1,9 @@
+{
+  "schema": "openclaw.skill.v1",
+  "name": "friday-router",
+  "version": "1.0.0",
+  "description": "Austin's intelligent model router with fixed scoring, his preferred models, and OpenClaw integration",
+  "author": "Austin",
+  "tags": ["router", "model-selection", "openrouter", "cost-optimization"],
+  "platform": "openclaw"
+}
