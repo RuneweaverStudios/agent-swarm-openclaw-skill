@@ -1,7 +1,7 @@
 ---
 name: friday-router
 description: Austin's intelligent model router with fixed scoring, his preferred models, and OpenClaw integration
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Friday Router
