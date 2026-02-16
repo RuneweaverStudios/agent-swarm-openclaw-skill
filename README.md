@@ -1,10 +1,10 @@
-# IntentRouter
+# OpenRouterRouter | Codename: Centipede
 
 **Your AI's Smart Traffic Director: Precisely Matching Your OpenClaw Tasks to the Perfect LLM.**
 
 **v1.5.0 — This version is tested and working.** Gateway guard, watchdog, COMPLEX tier, absolute paths for TUI delegation.
 
-IntentRouter is the intelligent LLM orchestration skill for OpenClaw. It precisely analyzes your tasks and directs them to the best LLM for the job—DeepSeek Coder for complex code, Kimi k2.5 for creative prose, Grok Fast for web research. Route with purpose; stop wasting resources.
+OpenRouterRouter (codename: Centipede) is the intelligent LLM orchestration skill for OpenClaw. It precisely analyzes your tasks and directs them to the best LLM for the job—DeepSeek Coder for complex code, Kimi k2.5 for creative prose, Grok Fast for web research. Route with purpose; stop wasting resources.
 
 ## Instruction scope (what this skill does)
 
@@ -34,7 +34,7 @@ The router delegates tasks to tier-specific sub-agents (Kimi for creative, DeepS
 
 The **main agent (Gemini 2.5 Flash)** does not do user tasks itself. For every user **task** (code, research, write, build, etc.):
 
-1. Run IntentRouter: `python scripts/router.py spawn --json "<user message>"` and parse the JSON.
+1. Run OpenRouterRouter: `python scripts/router.py spawn --json "<user message>"` and parse the JSON.
 2. Call **sessions_spawn** with the `task` and `model` from the router output (use the exact `model` value).
 3. Forward the sub-agent's result to the user.
 

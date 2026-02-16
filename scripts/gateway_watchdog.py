@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Gateway watchdog daemon for IntentRouter (friday-router skill).
+Gateway watchdog daemon for OpenRouterRouter (codename: Centipede) / friday-router skill.
 
 Runs every 10 seconds; if gateway is not connected (not running or auth mismatch),
 runs: gateway_guard status --json, ensure --apply --json, then openclaw gateway.

@@ -1,17 +1,17 @@
 ---
 name: friday-router
-displayName: IntentRouter
+displayName: OpenRouterRouter | Codename: Centipede
 description: Your AI's Smart Traffic Director—precisely matching OpenClaw tasks to the perfect LLM. Intelligent orchestration with gateway guard, watchdog, OpenRouter.
 version: 1.5.0
 ---
 
-# IntentRouter
+# OpenRouterRouter | Codename: Centipede
 
 **Your AI's Smart Traffic Director: Precisely Matching Your OpenClaw Tasks to the Perfect LLM.**
 
 **v1.5.0 — Critical stable release.** Gateway guard, watchdog, COMPLEX tier, absolute paths. Tested and working with OpenClaw TUI delegation.
 
-IntentRouter analyzes your tasks and directs them to the best LLM—DeepSeek Coder for code, Kimi k2.5 for creative, Grok Fast for research. Eliminate guesswork; route with purpose.
+OpenRouterRouter (codename: Centipede) analyzes your tasks and directs them to the best LLM—DeepSeek Coder for code, Kimi k2.5 for creative, Grok Fast for research. Eliminate guesswork; route with purpose.
 
 **Requirements:** **OpenRouter** — All model IDs use the `openrouter/...` prefix. Configure OpenClaw with an OpenRouter API key so one auth profile covers every tier.
 
@@ -25,7 +25,7 @@ When you are the **main agent** (Gemini 2.5 Flash) and the user gives you a **ta
 
 **Steps (all three required):**
 
-1. **Run IntentRouter** to get spawn params:
+1. **Run OpenRouterRouter** to get spawn params:
    ```bash
    python3 workspace/skills/friday-router/scripts/router.py spawn --json "<user message>"
    ```
