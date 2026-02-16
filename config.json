@@ -1,15 +1,15 @@
 {
   "name": "Friday Router",
   "description": "Austin's intelligent model router with fixed scoring, his preferred models, and OpenClaw integration",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "Austin",
-  "default_model": "openrouter/anthropic/claude-sonnet-4",
+  "default_model": "openrouter/z-ai/glm-4.7-flash",
   "models": [
     {
-      "id": "google/gemini-1.5-flash",
+      "id": "openrouter/google/gemini-1.5-flash",
       "alias": "Gemini-Flash",
       "tier": "FAST",
-      "provider": "google",
+      "provider": "openrouter",
       "input_cost_per_m": 0.075,
       "output_cost_per_m": 0.30,
       "context_window": 1000000,
@@ -28,10 +28,10 @@
       "use_for": ["simple tasks", "fast responses", "monitoring"]
     },
     {
-      "id": "anthropic/claude-3-haiku",
+      "id": "openrouter/anthropic/claude-3-haiku",
       "alias": "Haiku",
       "tier": "FAST",
-      "provider": "anthropic",
+      "provider": "openrouter",
       "input_cost_per_m": 0.25,
       "output_cost_per_m": 1.25,
       "context_window": 200000,
@@ -39,10 +39,10 @@
       "use_for": ["fast responses", "fallback for flash"]
     },
     {
-      "id": "zhipu/glm-5",
+      "id": "openrouter/zhipu/glm-5",
       "alias": "GLM-5",
       "tier": "REASONING",
-      "provider": "zhipu",
+      "provider": "openrouter",
       "input_cost_per_m": 0.10,
       "output_cost_per_m": 0.10,
       "context_window": 128000,
@@ -50,10 +50,10 @@
       "use_for": ["reasoning", "math", "logic", "analysis"]
     },
     {
-      "id": "minimax/minimax-2.5",
+      "id": "openrouter/minimax/minimax-2.5",
       "alias": "Minimax-2.5",
       "tier": "REASONING",
-      "provider": "minimax",
+      "provider": "openrouter",
       "input_cost_per_m": 0.10,
       "output_cost_per_m": 0.10,
       "context_window": 128000,
@@ -61,10 +61,10 @@
       "use_for": ["reasoning fallback"]
     },
     {
-      "id": "minimax/kimi-k2.5",
+      "id": "openrouter/minimax/kimi-k2.5",
       "alias": "Kimi-k2.5",
       "tier": "CREATIVE",
-      "provider": "minimax",
+      "provider": "openrouter",
       "input_cost_per_m": 0.20,
       "output_cost_per_m": 0.20,
       "context_window": 128000,
@@ -72,10 +72,10 @@
       "use_for": ["creative writing", "frontend design", "UI/UX", "stories"]
     },
     {
-      "id": "xai/grok-3-fast",
+      "id": "openrouter/xai/grok-3-fast",
       "alias": "Grok-Fast",
       "tier": "RESEARCH",
-      "provider": "xai",
+      "provider": "openrouter",
       "input_cost_per_m": 0.10,
       "output_cost_per_m": 0.10,
       "context_window": 131072,
@@ -83,10 +83,10 @@
       "use_for": ["research", "web lookups", "fact-finding"]
     },
     {
-      "id": "deepseek-ai/deepseek-coder-v2",
+      "id": "openrouter/deepseek-ai/deepseek-coder-v2",
       "alias": "DeepSeek-Coder",
       "tier": "CODE",
-      "provider": "deepseek",
+      "provider": "openrouter",
       "input_cost_per_m": 0.14,
       "output_cost_per_m": 0.28,
       "context_window": 65536,
@@ -94,15 +94,37 @@
       "use_for": ["code generation", "debugging", "refactoring"]
     },
     {
-      "id": "qwen/qwen2.5-coder",
+      "id": "openrouter/qwen/qwen2.5-coder",
       "alias": "Qwen-Coder",
       "tier": "CODE",
-      "provider": "qwen",
+      "provider": "openrouter",
       "input_cost_per_m": 0.10,
       "output_cost_per_m": 0.10,
       "context_window": 32768,
       "capabilities": ["text", "code"],
       "use_for": ["code fallback"]
+    },
+    {
+      "id": "openrouter/z-ai/glm-4.7-flash",
+      "alias": "GLM-4.7-Flash",
+      "tier": "QUALITY",
+      "provider": "openrouter",
+      "input_cost_per_m": 0.06,
+      "output_cost_per_m": 0.40,
+      "context_window": 128000,
+      "capabilities": ["text", "code", "reasoning"],
+      "use_for": ["default capable model", "orchestrator", "complex code", "architecture"]
+    },
+    {
+      "id": "openrouter/z-ai/glm-4.7",
+      "alias": "GLM-4.7",
+      "tier": "QUALITY",
+      "provider": "openrouter",
+      "input_cost_per_m": 0.40,
+      "output_cost_per_m": 1.50,
+      "context_window": 202752,
+      "capabilities": ["text", "code", "reasoning"],
+      "use_for": ["complex code", "architecture", "fallback"]
     },
     {
       "id": "openrouter/anthropic/claude-sonnet-4",
@@ -113,13 +135,13 @@
       "output_cost_per_m": 15.00,
       "context_window": 200000,
       "capabilities": ["text", "code", "reasoning", "vision"],
-      "use_for": ["default capable model", "complex code", "architecture"]
+      "use_for": ["complex code", "architecture", "fallback"]
     },
     {
-      "id": "anthropic/claude-3.5-sonnet",
+      "id": "openrouter/anthropic/claude-3.5-sonnet",
       "alias": "Sonnet",
       "tier": "QUALITY",
-      "provider": "anthropic",
+      "provider": "openrouter",
       "input_cost_per_m": 3.00,
       "output_cost_per_m": 15.00,
       "context_window": 200000,
@@ -127,10 +149,10 @@
       "use_for": ["complex code", "architecture", "high-quality output"]
     },
     {
-      "id": "openai/gpt-4o",
+      "id": "openrouter/openai/gpt-4o",
       "alias": "GPT-4o",
       "tier": "VISION",
-      "provider": "openai",
+      "provider": "openrouter",
       "input_cost_per_m": 2.50,
       "output_cost_per_m": 10.00,
       "context_window": 128000,
@@ -141,36 +163,36 @@
   "routing_rules": {
     "FAST": {
       "primary": "openrouter/google/gemini-2.5-flash",
-      "fallback": ["google/gemini-1.5-flash", "anthropic/claude-3-haiku"],
+      "fallback": ["openrouter/google/gemini-1.5-flash", "openrouter/anthropic/claude-3-haiku"],
       "keywords": ["check", "get", "list", "show", "status", "monitor", "fetch", "simple", "quick"]
     },
     "REASONING": {
-      "primary": "zhipu/glm-5",
-      "fallback": ["minimax/minimax-2.5"],
+      "primary": "openrouter/zhipu/glm-5",
+      "fallback": ["openrouter/minimax/minimax-2.5"],
       "keywords": ["reason", "prove", "logic", "analyze", "derive", "math", "think", "step by step"]
     },
     "CREATIVE": {
-      "primary": "minimax/kimi-k2.5",
+      "primary": "openrouter/minimax/kimi-k2.5",
       "fallback": [],
       "keywords": ["creative", "write", "story", "design", "UI", "UX", "frontend", "website", "style", "artistic"]
     },
     "RESEARCH": {
-      "primary": "xai/grok-3-fast",
+      "primary": "openrouter/xai/grok-3-fast",
       "fallback": [],
       "keywords": ["research", "find", "search", "lookup", "web", "information", "fact", "review"]
     },
     "CODE": {
-      "primary": "deepseek-ai/deepseek-coder-v2",
-      "fallback": ["qwen/qwen2.5-coder"],
+      "primary": "openrouter/deepseek-ai/deepseek-coder-v2",
+      "fallback": ["openrouter/qwen/qwen2.5-coder"],
       "keywords": ["code", "function", "class", "debug", "fix", "implement", "refactor", "lint", "test"]
     },
     "QUALITY": {
-      "primary": "openrouter/anthropic/claude-sonnet-4",
-      "fallback": ["anthropic/claude-3.5-sonnet", "openai/gpt-4o"],
+      "primary": "openrouter/z-ai/glm-4.7-flash",
+      "fallback": ["openrouter/z-ai/glm-4.7", "openrouter/anthropic/claude-sonnet-4", "openrouter/anthropic/claude-3.5-sonnet", "openrouter/openai/gpt-4o"],
       "keywords": ["complex", "architecture", "design", "system", "comprehensive", "thorough"]
     },
     "VISION": {
-      "primary": "openai/gpt-4o",
+      "primary": "openrouter/openai/gpt-4o",
       "fallback": [],
       "keywords": ["image", "picture", "photo", "screenshot", "visual", "analyze image"]
     }

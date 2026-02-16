@@ -2,17 +2,21 @@
 
 Austin's intelligent model routing skill for OpenClaw. Routes tasks to the right LLM by tier — capable by default, down-routes to cheaper models only when the task is clearly simple.
 
+## Requirements
+
+- **OpenRouter** — All model delegation (default, orchestrator, and sub-agents) uses OpenRouter. Configure OpenClaw with an OpenRouter API key so that every router-recommended model uses a single OpenRouter auth profile. Model IDs use the `openrouter/...` prefix (e.g. `openrouter/z-ai/glm-4.7-flash`). Without OpenRouter you may see "No API key found for provider \"zai\"".
+
 ## Default behavior
 
-**Session default:** OpenRouter Claude Sonnet 4 — capable of basic coding and complex tasks.
+**Session default / orchestrator:** GLM 4.7 Flash (z-ai/glm-4.7-flash via OpenRouter) — faster than full GLM 4.7.
 
-The router **down-routes** to cheaper/faster models (e.g. Gemini 2.5 Flash) only when the task is clearly simple (FAST tier). So you start capable by default; simple tasks save cost. When the skill is installed, OpenClaw's default model is set to Claude Sonnet 4 so every new session is capable by default.
+The router **down-routes** to cheaper/faster models (e.g. Gemini 2.5 Flash) for simple tasks (FAST tier). When the skill is installed, OpenClaw's default model is GLM 4.7 for new sessions and the main agent.
 
 ---
 
 ## Orchestrator flow (task delegation)
 
-The **main agent (Sonnet)** does not do user tasks itself. For every user **task** (code, research, check, build, etc.):
+The **main agent (GLM 4.7 Flash)** does not do user tasks itself. For every user **task** (code, research, check, build, etc.):
 
 1. Run the router: `python scripts/router.py spawn --json "<user message>"` and parse the JSON output.
 2. Call **sessions_spawn** with the `task` and `model` (and any other params) from the router.
@@ -40,7 +44,7 @@ python scripts/router.py classify "your task description"
 
 ## Features
 
-- **Capable by default** — OpenRouter Claude Sonnet 4 for new sessions; simple tasks down-route to Gemini 2.5 Flash
+- **Default / orchestrator** — GLM 4.7 Flash for new sessions and main agent; simple tasks down-route to Gemini 2.5 Flash
 - Fixed scoring bugs from original intelligent-router (simple indicators, agentic bump, vision priority, code keywords, confidence)
 - 7 tiers: FAST, REASONING, CREATIVE, RESEARCH, CODE, QUALITY, VISION
 - OpenClaw integration: main agent delegates via `spawn --json` + **sessions_spawn**; router provides model + task params
@@ -169,7 +173,7 @@ python scripts/router.py classify "analyze this screenshot"
 
 ## Configuration
 
-- **`config.json`** — Model list and `routing_rules` per tier; optional **`default_model`** (e.g. `openrouter/anthropic/claude-sonnet-4`) for session default.
+- **`config.json`** — Model list and `routing_rules` per tier; **`default_model`** (e.g. `z-ai/glm-4.7-flash`) for session default and orchestrator.
 - Router loads `config.json` from the parent of `scripts/` (skill root). Use `FridayRouter(config_path="...")` to override.
 
 ---

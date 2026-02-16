@@ -1,18 +1,20 @@
 ---
 name: friday-router
 description: Austin's intelligent model router with fixed scoring, his preferred models, and OpenClaw integration
-version: 1.2.0
+version: 1.3.0
 ---
 
 # Friday Router
 
 Austin's intelligent model routing skill with fixed bugs from the original intelligent-router and customized for his preferred models.
 
-**Default model:** OpenRouter Claude Sonnet 4 — capable of basic coding and complex tasks. The router **down-routes** to cheaper/faster models (e.g. Gemini 2.5 Flash) only when the task is clearly simple (FAST tier). So you start capable by default; simple tasks save cost.
+**Requirements:** **OpenRouter** — All router model delegation (default, orchestrator, and sub-agents) goes through OpenRouter. Model IDs use the `openrouter/...` prefix. Configure OpenClaw with an OpenRouter API key so one auth profile is used for every tier.
+
+**Default model:** GLM 4.7 Flash (openrouter/z-ai/glm-4.7-flash via OpenRouter) — default and orchestrator; faster than full GLM 4.7. The router **down-routes** to cheaper/faster models (e.g. Gemini 2.5 Flash) for simple tasks (FAST tier).
 
 ## Orchestrator flow (mandatory for task requests)
 
-When you are the **main agent** (Sonnet) and the user gives you a **task** (something to do: code, research, check, build, fix, **write**, **create**, design, poem, story, etc.), you must **delegate** it. You do **not** perform the task yourself; a sub-agent does.
+When you are the **main agent** (GLM 4.7 Flash) and the user gives you a **task** (something to do: code, research, check, build, fix, **write**, **create**, design, poem, story, etc.), you must **delegate** it. You do **not** perform the task yourself; a sub-agent does.
 
 **Steps (both required):**
 
@@ -26,7 +28,7 @@ When you are the **main agent** (Sonnet) and the user gives you a **task** (some
 
 3. **Forward or summarize** the sub-agent's result to the user. You may briefly say you're delegating to the recommended model, then present the sub-agent's reply.
 
-**Anti-pattern (forbidden):** Running the router, seeing e.g. "Kimi k2.5 recommended", and then doing the creative task yourself in the same turn. That bypasses the sub-agent: Kimi is never used and logs will show only the main model (e.g. Claude Sonnet 4). Always call `sessions_spawn` after the router so the recommended model actually runs the task.
+**Anti-pattern (forbidden):** Running the router, seeing e.g. "Kimi k2.5 recommended", and then doing the creative task yourself in the same turn. That bypasses the sub-agent: Kimi is never used and logs will show only the main model (e.g. GLM 4.7 Flash). Always call `sessions_spawn` after the router so the recommended model actually runs the task.
 
 **Exception:** Meta-questions (e.g. "what model are you?", "how does routing work?") you answer yourself. Only delegate when the user is asking for work to be done.
 
@@ -44,16 +46,16 @@ When you are the **main agent** (Sonnet) and the user gives you a **task** (some
 
 | Use Case | Primary | Fallback |
 |----------|---------|----------|
-| **Default (session)** | OpenRouter Claude Sonnet 4 | — |
+| **Default (session / orchestrator)** | GLM 4.7 Flash (z-ai/glm-4.7-flash) | GLM 4.7, Claude Sonnet 4 |
 | **Fast/F cheap** | Gemini 2.5 Flash (OpenRouter) | Gemini 1.5 Flash, Haiku |
 | **Reasoning** | GLM-5 | Minimax 2.5 |
 | **Creative/Frontend** | Kimi k2.5 | — |
 | **Research** | Grok Fast | — |
 | **Code/Engineering** | DeepSeek-Coder-V2 | Qwen2.5-Coder |
-| **Quality/Complex** | OpenRouter Claude Sonnet 4 | Claude 3.5 Sonnet, GPT-4o |
+| **Quality/Complex** | GLM 4.7 Flash | GLM 4.7, Claude Sonnet 4, GPT-4o |
 | **Vision/Images** | GPT-4o | — |
 
-When the skill is installed, OpenClaw's **default model** is set to OpenRouter Claude Sonnet 4 so every new session is capable by default. The router then recommends Gemini 2.5 Flash only for clearly simple tasks (check, status, list, etc.).
+When the skill is installed, OpenClaw's **default model** is GLM 4.7 Flash so every new session and the orchestrator use it. The router recommends Gemini 2.5 Flash for simple tasks (check, status, list, etc.).
 
 ## Usage
 
