@@ -191,6 +191,18 @@ class FridayRouter:
         
         return result
     
+    def get_default_model(self):
+        """Return the default capable model (OpenRouter Claude Sonnet 4). Used for session default."""
+        default_id = self.config.get('default_model')
+        if not default_id:
+            # Fallback: QUALITY tier primary
+            tier_rules = self.config.get('routing_rules', {}).get('QUALITY', {})
+            default_id = tier_rules.get('primary')
+        for m in self.config.get('models', []):
+            if m['id'] == default_id:
+                return m
+        return None
+    
     def recommend_model(self, task_description):
         """Classify task and recommend the best model."""
         classification = self.classify_task(task_description, return_details=True)
@@ -308,6 +320,7 @@ def main():
     if len(sys.argv) < 2:
         print("Friday Router v1.0.0")
         print("\nUsage:")
+        print("  router.py default                Show session default model (capable by default)")
         print("  router.py classify <task>       Classify task and recommend model")
         print("  router.py score <task>          Show detailed scoring")
         print("  router.py cost <task>           Estimate cost")
@@ -318,7 +331,18 @@ def main():
     command = sys.argv[1]
     router = FridayRouter()
     
-    if command == 'classify':
+    if command == 'default':
+        m = router.get_default_model()
+        if not m:
+            print("❌ No default model configured (missing default_model or QUALITY primary in config)")
+            sys.exit(1)
+        print("🎯 Session default model (capable by default):\n")
+        print(f"   {m['alias']} ({m['id']})")
+        print(f"   Cost: ${m['input_cost_per_m']}/${m['output_cost_per_m']} per M")
+        print(f"   Use for: {', '.join(m.get('use_for', []))}")
+        print("\n   Simple tasks down-route to FAST tier (e.g. Gemini 2.5 Flash).")
+    
+    elif command == 'classify':
         task = ' '.join(sys.argv[2:])
         result = router.recommend_model(task)
         

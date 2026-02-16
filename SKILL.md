@@ -8,6 +8,8 @@ version: 1.0.0
 
 Austin's intelligent model routing skill with fixed bugs from the original intelligent-router and customized for his preferred models.
 
+**Default model:** OpenRouter Claude Sonnet 4 — capable of basic coding and complex tasks. The router **down-routes** to cheaper/faster models (e.g. Gemini 2.5 Flash) only when the task is clearly simple (FAST tier). So you start capable by default; simple tasks save cost.
+
 ## What Changed from Original
 
 | Bug | Fix |
@@ -22,19 +24,25 @@ Austin's intelligent model routing skill with fixed bugs from the original intel
 
 | Use Case | Primary | Fallback |
 |----------|---------|----------|
-| **Fast/F cheap** | Gemini 1.5 Flash | Claude 3 Haiku |
+| **Default (session)** | OpenRouter Claude Sonnet 4 | — |
+| **Fast/F cheap** | Gemini 2.5 Flash (OpenRouter) | Gemini 1.5 Flash, Haiku |
 | **Reasoning** | GLM-5 | Minimax 2.5 |
 | **Creative/Frontend** | Kimi k2.5 | — |
 | **Research** | Grok Fast | — |
 | **Code/Engineering** | DeepSeek-Coder-V2 | Qwen2.5-Coder |
-| **Quality/Complex** | Claude 3.5 Sonnet | GPT-4o |
+| **Quality/Complex** | OpenRouter Claude Sonnet 4 | Claude 3.5 Sonnet, GPT-4o |
 | **Vision/Images** | GPT-4o | — |
+
+When the skill is installed, OpenClaw's **default model** is set to OpenRouter Claude Sonnet 4 so every new session is capable by default. The router then recommends Gemini 2.5 Flash only for clearly simple tasks (check, status, list, etc.).
 
 ## Usage
 
 ### CLI
 
 ```bash
+# Show session default model (capable by default)
+python scripts/router.py default
+
 # Classify a task
 python scripts/router.py classify "fix lint errors in utils.js"
 
@@ -86,7 +94,7 @@ spawn_params = router.spawn_agent("fix this bug", label="bugfix")
 ```bash
 # Simple monitoring → FAST
 python scripts/router.py classify "check server status"
-# → FAST (Gemini Flash)
+# → FAST (Gemini 2.5 Flash)
 
 # Code task → CODE
 python scripts/router.py classify "fix lint errors in utils.js"

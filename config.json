@@ -3,6 +3,7 @@
   "description": "Austin's intelligent model router with fixed scoring, his preferred models, and OpenClaw integration",
   "version": "1.0.0",
   "author": "Austin",
+  "default_model": "openrouter/anthropic/claude-sonnet-4",
   "models": [
     {
       "id": "google/gemini-1.5-flash",
@@ -14,6 +15,17 @@
       "context_window": 1000000,
       "capabilities": ["text", "code", "vision"],
       "use_for": ["fast responses", "monitoring", "status checks", "summaries"]
+    },
+    {
+      "id": "openrouter/google/gemini-2.5-flash",
+      "alias": "Gemini-2.5-Flash",
+      "tier": "FAST",
+      "provider": "openrouter",
+      "input_cost_per_m": 0.30,
+      "output_cost_per_m": 2.50,
+      "context_window": 1048576,
+      "capabilities": ["text", "code", "vision"],
+      "use_for": ["simple tasks", "fast responses", "monitoring"]
     },
     {
       "id": "anthropic/claude-3-haiku",
@@ -93,6 +105,17 @@
       "use_for": ["code fallback"]
     },
     {
+      "id": "openrouter/anthropic/claude-sonnet-4",
+      "alias": "Claude-Sonnet-4",
+      "tier": "QUALITY",
+      "provider": "openrouter",
+      "input_cost_per_m": 3.00,
+      "output_cost_per_m": 15.00,
+      "context_window": 200000,
+      "capabilities": ["text", "code", "reasoning", "vision"],
+      "use_for": ["default capable model", "complex code", "architecture"]
+    },
+    {
       "id": "anthropic/claude-3.5-sonnet",
       "alias": "Sonnet",
       "tier": "QUALITY",
@@ -117,8 +140,8 @@
   ],
   "routing_rules": {
     "FAST": {
-      "primary": "google/gemini-1.5-flash",
-      "fallback": ["anthropic/claude-3-haiku"],
+      "primary": "openrouter/google/gemini-2.5-flash",
+      "fallback": ["google/gemini-1.5-flash", "anthropic/claude-3-haiku"],
       "keywords": ["check", "get", "list", "show", "status", "monitor", "fetch", "simple", "quick"]
     },
     "REASONING": {
@@ -142,8 +165,8 @@
       "keywords": ["code", "function", "class", "debug", "fix", "implement", "refactor", "lint", "test"]
     },
     "QUALITY": {
-      "primary": "anthropic/claude-3.5-sonnet",
-      "fallback": ["openai/gpt-4o"],
+      "primary": "openrouter/anthropic/claude-sonnet-4",
+      "fallback": ["anthropic/claude-3.5-sonnet", "openai/gpt-4o"],
       "keywords": ["complex", "architecture", "design", "system", "comprehensive", "thorough"]
     },
     "VISION": {
