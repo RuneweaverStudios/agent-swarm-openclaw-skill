@@ -3,3 +3,7 @@ __pycache__/
 *.pyo
 *.egg-info/
 .pytest_cache/
+
+# Backups (do not commit)
+backups/
+../backups/
