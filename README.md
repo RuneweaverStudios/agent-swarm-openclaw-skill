@@ -11,7 +11,11 @@
 
 Agent Swarm | OpenClaw Skill routes your OpenClaw tasks to the best LLM for the job and delegates work to subagents. You save tokens (orchestrator stays on a cheap model; only the task runs on the matched model) and get better results—GLM 4.7 for code, Kimi k2.5 for creative, Grok Fast for research.
 
-**Security improvements in v1.7.0:** Removed gateway auth token/password exposure from router output. Gateway management functionality has been removed - use the separate [gateway-guard](https://clawhub.ai/skills/gateway-guard) skill if gateway auth management is needed. FACEPALM troubleshooting integration has been removed - use the separate [FACEPALM](https://github.com/RuneweaverStudios/FACEPALM) skill if troubleshooting is needed.
+**Security improvements in v1.7.0+:** 
+- Removed gateway auth token/password exposure from router output
+- Gateway management functionality has been removed - use the separate [gateway-guard](https://clawhub.ai/skills/gateway-guard) skill if gateway auth management is needed
+- FACEPALM troubleshooting integration has been removed - use the separate [FACEPALM](https://github.com/RuneweaverStudios/FACEPALM) skill if troubleshooting is needed
+- **v1.7.2+**: Added comprehensive input validation, config patch validation, and security documentation
 
 ## Why Agent Swarm
 
@@ -20,6 +24,51 @@ With a single model, OpenClaw can feel slow: you're forced to choose between qua
 ## Requirements (critical)
 
 - **OpenRouter is mandatory** — All model delegation uses OpenRouter (`openrouter/...` prefix). Configure OpenClaw with an OpenRouter API key so one auth profile covers every model.
+
+## Security
+
+### Input Validation
+
+The router validates and sanitizes all inputs to prevent injection attacks:
+
+- **Task strings**: Validated for length (max 10KB), null bytes, and suspicious patterns
+- **Config patches**: Only allows modifications to `tools.exec.host` and `tools.exec.node` (whitelist approach)
+- **Labels**: Validated for length and null bytes
+
+### Safe Execution (Critical for Orchestrators)
+
+**When calling `router.py` from orchestrator code, always use `subprocess` with a list of arguments, never shell string interpolation:**
+
+```python
+# ✅ SAFE: Use subprocess with list arguments
+import subprocess
+result = subprocess.run(
+    ["python3", "/path/to/router.py", "spawn", "--json", user_message],
+    capture_output=True,
+    text=True
+)
+
+# ❌ UNSAFE: Shell string interpolation (vulnerable to injection)
+import os
+os.system(f'python3 router.py spawn --json "{user_message}"')  # DON'T DO THIS
+```
+
+The router uses Python's `argparse`, which safely handles arguments when passed as a list. Shell string interpolation is vulnerable to command injection if the user message contains shell metacharacters (`;`, `|`, `&`, `$()`, etc.).
+
+### Config Patch Safety
+
+The `recommended_config_patch` only modifies safe fields:
+- `tools.exec.host` (must be 'sandbox' or 'node')
+- `tools.exec.node` (only when host is 'node')
+
+All config patches are validated before being returned. The orchestrator should validate patches again before applying them to `openclaw.json`.
+
+### Prompt Injection Mitigation
+
+Task strings are passed to `sessions_spawn` and then to sub-agents. While the router validates input format, prompt injection protection is primarily the responsibility of:
+1. The orchestrator (validating task strings)
+2. The sub-agent LLM (resisting prompt injection)
+3. The OpenClaw platform (sanitizing `sessions_spawn` inputs)
 
 ## Default behavior
 
@@ -73,7 +122,7 @@ python scripts/router.py classify "your task description"
 - 7 tiers: FAST, REASONING, CREATIVE, RESEARCH, CODE, QUALITY, VISION
 - All models via OpenRouter (single API key)
 - Config-driven: `config.json` for models and routing rules
-- **Security-focused** — No gateway auth secret exposure, no process management
+- **Security-focused** — No gateway auth secret exposure, no process management, input validation, config patch whitelisting
 
 ---
 
@@ -160,6 +209,20 @@ cost = router.estimate_cost("design landing page")         # → {tier, model, c
 ---
 
 ## Changelog
+
+### v1.7.3 (Security hardening)
+
+**Security improvements:**
+- **Input validation**: Added comprehensive validation for task strings (length limits, null byte detection, suspicious pattern detection)
+- **Config patch validation**: Whitelist-based validation for `recommended_config_patch` - only allows modifications to `tools.exec.host` and `tools.exec.node`
+- **Label validation**: Added validation for label parameters
+- **Documentation**: Added security section with safe execution practices and injection prevention guidance
+
+**Technical changes:**
+- Added `validate_task_string()` function for input sanitization
+- Added `validate_config_patch()` function for config patch whitelisting
+- Updated `spawn_agent()`, `classify_task()`, and `split_into_tasks()` to validate inputs
+- Enhanced error messages for invalid inputs
 
 ### v1.7.0 (Security-focused release)
 

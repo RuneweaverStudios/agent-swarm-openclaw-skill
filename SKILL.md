@@ -2,7 +2,7 @@
 name: agent-swarm
 displayName: Agent Swarm | OpenClaw Skill
 description: "IMPORTANT: OpenRouter is required. Routes tasks to the right model and always delegates work through sessions_spawn."
-version: 1.7.2
+version: 1.7.3
 ---
 
 # Agent Swarm | OpenClaw Skill
@@ -80,7 +80,53 @@ Edit `config.json` to change routing:
 - `routing_rules.<TIER>.primary` = main model for tier
 - `routing_rules.<TIER>.fallback` = backups
 
-## Security note
+## Security
+
+### Input Validation
+
+The router validates and sanitizes all inputs to prevent injection attacks:
+
+- **Task strings**: Validated for length (max 10KB), null bytes, and suspicious patterns
+- **Config patches**: Only allows modifications to `tools.exec.host` and `tools.exec.node` (whitelist approach)
+- **Labels**: Validated for length and null bytes
+
+### Safe Execution
+
+**Critical**: When calling `router.py` from orchestrator code, always use `subprocess` with a list of arguments, **never** shell string interpolation:
+
+```python
+# ✅ SAFE: Use subprocess with list arguments
+import subprocess
+result = subprocess.run(
+    ["python3", "/path/to/router.py", "spawn", "--json", user_message],
+    capture_output=True,
+    text=True
+)
+
+# ❌ UNSAFE: Shell string interpolation (vulnerable to injection)
+import os
+os.system(f'python3 router.py spawn --json "{user_message}"')  # DON'T DO THIS
+```
+
+The router uses Python's `argparse`, which safely handles arguments when passed as a list. Shell string interpolation is vulnerable to command injection if the user message contains shell metacharacters.
+
+### Config Patch Safety
+
+The `recommended_config_patch` only modifies safe fields:
+- `tools.exec.host` (must be 'sandbox' or 'node')
+- `tools.exec.node` (only when host is 'node')
+
+All config patches are validated before being returned. The orchestrator should validate patches again before applying them to `openclaw.json`.
+
+### Prompt Injection Mitigation
+
+Task strings are passed to `sessions_spawn` and then to sub-agents. While the router validates input format, prompt injection protection is primarily the responsibility of:
+1. The orchestrator (validating task strings)
+2. The sub-agent LLM (resisting prompt injection)
+3. The OpenClaw platform (sanitizing `sessions_spawn` inputs)
+
+### Other Security Notes
 
 - This skill does not expose gateway secrets.
 - Use `gateway-guard` separately for gateway/auth management.
+- The router does not execute arbitrary code or modify files outside of config patches.

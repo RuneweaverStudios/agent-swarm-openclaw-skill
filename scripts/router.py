@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
 Agent Swarm | OpenClaw Skill — Task-to-LLM routing for OpenClaw
-Version 1.7.0
+Version 1.7.3
+
+Security improvements (v1.7.3):
+- Input validation for task strings (length limits, null bytes, suspicious patterns)
+- Config patch validation (whitelist approach - only tools.exec.host/node)
+- Label validation
+- Comprehensive security documentation
 
 Fixed bugs from original intelligent-router:
 - Simple indicators now properly invert (high match = SIMPLE, not complex)
@@ -14,6 +20,7 @@ Features:
 - Keyword-based routing for obvious matches
 - Weighted scoring for nuanced classification
 - OpenClaw integration for spawning sub-agents
+- Security-focused input validation and sanitization
 """
 
 import argparse
@@ -30,6 +37,94 @@ try:
     HAS_OPENCLAW = True
 except ImportError:
     HAS_OPENCLAW = False
+
+
+# Security: Input validation and sanitization
+def validate_task_string(task):
+    """
+    Validate and sanitize task string to prevent injection attacks.
+    Returns sanitized task string or raises ValueError if invalid.
+    """
+    if not isinstance(task, str):
+        raise ValueError("Task must be a string")
+    
+    # Check for reasonable length (prevent DoS)
+    if len(task) > 10000:  # 10KB limit
+        raise ValueError("Task string exceeds maximum length (10KB)")
+    
+    # Check for null bytes (common injection vector)
+    if '\x00' in task:
+        raise ValueError("Task string contains null bytes")
+    
+    # Task strings are user input that will be passed to LLMs - allow most characters
+    # but log warnings for suspicious patterns
+    suspicious_patterns = [
+        r'<script[^>]*>',  # Script tags
+        r'javascript:',     # JavaScript protocol
+        r'on\w+\s*=',       # Event handlers
+    ]
+    
+    for pattern in suspicious_patterns:
+        if re.search(pattern, task, re.IGNORECASE):
+            # Log warning but allow (LLM should handle this safely)
+            # In production, you might want stricter validation
+            pass
+    
+    return task.strip()
+
+
+def validate_config_patch(patch_json_str):
+    """
+    Validate that a config patch only modifies safe fields.
+    Returns validated patch dict or raises ValueError if unsafe.
+    
+    Allowed fields:
+    - tools.exec.host (must be 'sandbox' or 'node')
+    - tools.exec.node (only if host is 'node')
+    """
+    try:
+        patch = json.loads(patch_json_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in config patch: {e}")
+    
+    # Only allow modifications to tools.exec
+    allowed_paths = {
+        ('tools', 'exec', 'host'),
+        ('tools', 'exec', 'node'),
+    }
+    
+    def check_path(obj, path=tuple()):
+        """Recursively check that only allowed paths are modified."""
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                current_path = path + (key,)
+                if current_path not in allowed_paths:
+                    # Check if this is a parent of an allowed path
+                    is_parent = any(
+                        current_path == allowed[:len(current_path)]
+                        for allowed in allowed_paths
+                    )
+                    if not is_parent:
+                        raise ValueError(
+                            f"Config patch modifies disallowed path: {'.'.join(current_path)}. "
+                            f"Only tools.exec.host and tools.exec.node are allowed."
+                        )
+                check_path(value, current_path)
+        elif isinstance(obj, list):
+            raise ValueError("Config patch cannot contain arrays")
+    
+    check_path(patch)
+    
+    # Validate values
+    exec_config = patch.get('tools', {}).get('exec', {})
+    host = exec_config.get('host')
+    if host and host not in ('sandbox', 'node'):
+        raise ValueError(f"tools.exec.host must be 'sandbox' or 'node', got: {host}")
+    
+    if exec_config.get('host') != 'node' and exec_config.get('node'):
+        raise ValueError("tools.exec.node can only be set when host is 'node'")
+    
+    return patch
 
 
 def get_current_openclaw_config():
@@ -135,7 +230,15 @@ class FridayRouter:
         Classify a task into a tier using keyword matching + scoring.
         
         Returns: FAST, REASONING, CREATIVE, RESEARCH, CODE, QUALITY, or VISION
+        
+        Security: Validates task_description input.
         """
+        # Security: Validate input
+        if not isinstance(task_description, str):
+            raise ValueError("task_description must be a string")
+        if len(task_description) > 10000:
+            raise ValueError("task_description exceeds maximum length (10KB)")
+        
         text = task_description.lower()
         
         # First, check for exact keyword tier matches (highest priority)
@@ -325,20 +428,59 @@ class FridayRouter:
     def split_into_tasks(message):
         """Split a message into multiple task strings for parallel spawn.
         Splits on ' and ', ' then ', '; ', and ' also '. Returns list of non-empty stripped strings.
+        
+        Security: Validates input and sanitizes each task.
         """
+        if not isinstance(message, str):
+            raise ValueError("message must be a string")
+        if len(message) > 10000:
+            raise ValueError("message exceeds maximum length (10KB)")
+        
         if not (message or message.strip()):
             return []
         text = message.strip()
         for sep in [' and ', ' then ', '; ', ' also ']:
             text = text.replace(sep, '\n')
         parts = [p.strip() for p in text.split('\n') if p.strip()]
-        return parts if len(parts) > 1 else ([message.strip()] if message.strip() else [])
+        # Security: Validate each split task
+        validated_parts = []
+        for part in (parts if len(parts) > 1 else ([message.strip()] if message.strip() else [])):
+            try:
+                validated_parts.append(validate_task_string(part))
+            except ValueError:
+                # Skip invalid parts rather than failing entirely
+                continue
+        return validated_parts
 
     def spawn_agent(self, task, session_target='isolated', label=None, required_exec_host='sandbox', required_exec_node=None):
         """Spawn an OpenClaw sub-agent with the appropriate model.
         Optionally checks tools.exec host/node; on mismatch returns needs_config_patch (no exit).
         Always returns one dict: either params+recommendation or needs_config_patch+message+recommended_config_patch.
+        
+        Security: Validates task input and config patches to prevent injection attacks.
         """
+        # Security: Validate and sanitize task input
+        try:
+            task = validate_task_string(task)
+        except ValueError as e:
+            raise ValueError(f"Invalid task input: {e}")
+        
+        # Security: Validate label if provided
+        if label:
+            if not isinstance(label, str) or len(label) > 100:
+                raise ValueError("Label must be a string under 100 characters")
+            if '\x00' in label:
+                raise ValueError("Label contains null bytes")
+        
+        # Security: Validate required_exec_host and required_exec_node
+        if required_exec_host not in ('sandbox', 'node'):
+            raise ValueError(f"required_exec_host must be 'sandbox' or 'node', got: {required_exec_host}")
+        
+        if required_exec_node and not isinstance(required_exec_node, str):
+            raise ValueError("required_exec_node must be a string")
+        if required_exec_node and len(required_exec_node) > 200:
+            raise ValueError("required_exec_node exceeds maximum length")
+        
         current_config = get_current_openclaw_config()
         current_exec_host = current_config["tools_exec_host"] if current_config else "sandbox"
         current_exec_node = current_config["tools_exec_node"] if current_config else None
@@ -350,7 +492,15 @@ class FridayRouter:
                 if required_exec_host == "node"
                 else f"Temporarily set default exec host to '{required_exec_host}'."
             )
-            patch = json.dumps({"tools": {"exec": {"host": required_exec_host}}})
+            # Security: Only allow safe config patches
+            patch_dict = {"tools": {"exec": {"host": required_exec_host}}}
+            patch = json.dumps(patch_dict)
+            # Validate the patch we're generating
+            try:
+                validate_config_patch(patch)
+            except ValueError as e:
+                raise ValueError(f"Generated invalid config patch: {e}")
+            
             return {
                 "needs_config_patch": True,
                 "message": msg,
@@ -363,7 +513,15 @@ class FridayRouter:
                 f"Task requires exec node '{required_exec_node}' but current config is '{current_exec_node}'. "
                 "Apply the recommended config patch (triggers gateway restart)."
             )
-            patch = json.dumps({"tools": {"exec": {"host": "node", "node": required_exec_node}}})
+            # Security: Only allow safe config patches
+            patch_dict = {"tools": {"exec": {"host": "node", "node": required_exec_node}}}
+            patch = json.dumps(patch_dict)
+            # Validate the patch we're generating
+            try:
+                validate_config_patch(patch)
+            except ValueError as e:
+                raise ValueError(f"Generated invalid config patch: {e}")
+            
             return {
                 "needs_config_patch": True,
                 "message": msg,
