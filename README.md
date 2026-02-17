@@ -2,9 +2,9 @@
 
 **LLM routing and subagent delegation.** Routes each task to the right model, spawns subagents, and saves tokens.
 
-**v1.7.0 — This version is tested and working.** COMPLEX tier, absolute paths for TUI delegation. **Security-focused release:** Removed gateway auth secret exposure and gateway management functionality for improved security rating. (Formerly IntentRouter / friday-router; now single skill: agent-swarm.)
+**v1.7.0 — This version is tested and working.** COMPLEX tier, absolute paths for TUI delegation. **Security-focused release:** Removed gateway auth secret exposure and gateway management functionality for improved security rating. **Source:** [github.com/RuneweaverStudios/agent-swarm](https://github.com/RuneweaverStudios/agent-swarm).
 
-Agent Swarm | OpenClaw Skill routes your OpenClaw tasks to the best LLM for the job and delegates work to subagents. You save tokens (orchestrator stays on a cheap model; only the task runs on the matched model) and get better results—MiniMax 2.5 for code, Kimi k2.5 for creative, Grok Fast for research.
+Agent Swarm | OpenClaw Skill routes your OpenClaw tasks to the best LLM for the job and delegates work to subagents. You save tokens (orchestrator stays on a cheap model; only the task runs on the matched model) and get better results—GLM 4.7 for code, Kimi k2.5 for creative, Grok Fast for research.
 
 **Security improvements in v1.7.0:** Removed gateway auth token/password exposure from router output. Gateway management functionality has been removed - use the separate [gateway-guard](https://clawhub.ai/skills/gateway-guard) skill if gateway auth management is needed. FACEPALM troubleshooting integration has been removed - use the separate [FACEPALM](https://github.com/RuneweaverStudios/FACEPALM) skill if troubleshooting is needed.
 
@@ -16,7 +16,7 @@ Agent Swarm | OpenClaw Skill routes your OpenClaw tasks to the best LLM for the 
 
 **Session default / orchestrator:** Gemini 2.5 Flash (`openrouter/google/gemini-2.5-flash`) — fast, cheap, reliable at tool-calling.
 
-The router delegates tasks to tier-specific sub-agents (Kimi for creative, MiniMax 2.5 for code, etc.) via `sessions_spawn`. Simple tasks (check, status, list) down-route to Gemini 2.5 Flash.
+The router delegates tasks to tier-specific sub-agents (Kimi for creative, GLM 4.7 for code, etc.) via `sessions_spawn`. Simple tasks (check, status, list) down-route to Gemini 2.5 Flash.
 
 ---
 
@@ -62,6 +62,19 @@ python scripts/router.py classify "your task description"
 
 ---
 
+## Default agents (edit in config.json)
+
+All defaults are in **`config.json`**. Edit these two places to change which model runs for each tier:
+
+| What to edit | Key in config.json | Purpose |
+|--------------|--------------------|---------|
+| Session default / orchestrator | `default_model` | Model for new sessions and the main agent |
+| Per-tier primary | `routing_rules.<TIER>.primary` | Model used when a task matches that tier (FAST, CODE, CREATIVE, etc.) |
+
+Example: to make CODE use a different model, edit `routing_rules.CODE.primary`. Fallbacks are in `routing_rules.<TIER>.fallback`. The router loads this file from the skill root (parent of `scripts/`).
+
+---
+
 ## Models
 
 | Tier | Model | Cost/M (in/out) |
@@ -71,11 +84,11 @@ python scripts/router.py classify "your task description"
 | REASONING | GLM-5 | $0.10 / $0.10 |
 | CREATIVE | Kimi k2.5 | $0.20 / $0.20 |
 | RESEARCH | Grok Fast | $0.10 / $0.10 |
-| CODE | MiniMax 2.5 | $0.10 / $0.10 |
+| CODE | GLM 4.7 Flash | $0.06 / $0.40 |
 | QUALITY | GLM 4.7 Flash | $0.06 / $0.40 |
 | VISION | GPT-4o | $2.50 / $10.00 |
 
-**Fallbacks:** FAST → Gemini 1.5 Flash, Haiku; QUALITY → GLM 4.7, Sonnet 4, GPT-4o; CODE → Qwen Coder; REASONING → Minimax 2.5.
+**Fallbacks:** FAST → Gemini 1.5 Flash, Haiku; QUALITY → GLM 4.7, Sonnet 4, GPT-4o; CODE → MiniMax 2.5, Qwen Coder; REASONING → Minimax 2.5.
 
 ---
 

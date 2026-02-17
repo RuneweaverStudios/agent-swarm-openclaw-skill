@@ -11,7 +11,7 @@ version: 1.7.0
 
 **v1.7.0 — Security-focused release.** COMPLEX tier, absolute paths. Tested and working with OpenClaw TUI delegation. **Removed gateway auth secret exposure and gateway management for improved security.**
 
-Agent Swarm analyzes your tasks and directs them to the best LLM—MiniMax 2.5 for code, Kimi k2.5 for creative, Grok Fast for research. Eliminate guesswork; route with purpose.
+Agent Swarm analyzes your tasks and directs them to the best LLM—GLM 4.7 for code, Kimi k2.5 for creative, Grok Fast for research. Eliminate guesswork; route with purpose.
 
 **Security improvements in v1.7.0:** Removed gateway auth token/password from router output. Gateway management removed - use [gateway-guard](https://clawhub.ai/skills/gateway-guard) skill separately. FACEPALM integration removed - use [FACEPALM](https://github.com/RuneweaverStudios/FACEPALM) skill separately.
 
@@ -21,7 +21,7 @@ Agent Swarm analyzes your tasks and directs them to the best LLM—MiniMax 2.5 f
 
 **Critical stable orchestration:** The router always exits 0 and with `--json` prints one JSON object. If exec host/node mismatch is detected, the JSON includes `needs_config_patch`, `message`, and `recommended_config_patch` (and no `params`). When so, do **not** call `sessions_spawn`; report the message and patch to the user (e.g. apply patch or run gateway-guard). When `needs_config_patch` is absent or false, call `sessions_spawn` with `task`, `model`, `sessionTarget` (and `label` if present).
 
-**Default / orchestrator model:** Gemini 2.5 Flash (`openrouter/google/gemini-2.5-flash`) — fast, cheap, reliable at tool-calling. The router delegates tasks to tier-specific sub-agents (Kimi for creative, MiniMax 2.5 for code, etc.).
+**Default / orchestrator model:** Gemini 2.5 Flash (`openrouter/google/gemini-2.5-flash`) — fast, cheap, reliable at tool-calling. The router delegates tasks to tier-specific sub-agents (Kimi for creative, GLM 4.7 for code, etc.).
 
 ## Orchestrator flow (mandatory for task requests)
 
@@ -57,7 +57,17 @@ When you are the **main agent** (Gemini 2.5 Flash), you **classify** the user re
 
 **Security note:** This skill does NOT expose gateway auth secrets (tokens/passwords) in its output. Gateway management functionality has been removed. Use the separate `gateway-guard` skill if gateway auth management is needed.
 
-## Model Selection (Austin's Prefs)
+## Default agents (edit in config.json)
+
+To change which model runs for each tier, edit **`config.json`** in the skill root:
+
+- **Session default / orchestrator:** `default_model` (e.g. `openrouter/google/gemini-2.5-flash`)
+- **Per-tier primary:** `routing_rules.<TIER>.primary` (e.g. `routing_rules.CODE.primary`)
+- **Per-tier fallbacks:** `routing_rules.<TIER>.fallback` (array of model IDs)
+
+The router loads this file from the parent of `scripts/`; no code changes needed.
+
+## Model selection (from config)
 
 | Use Case | Primary (OpenRouter) | Fallback |
 |----------|---------------------|----------|
@@ -66,7 +76,7 @@ When you are the **main agent** (Gemini 2.5 Flash), you **classify** the user re
 | **Reasoning** | GLM-5 | Minimax 2.5 |
 | **Creative/Frontend** | Kimi k2.5 | — |
 | **Research** | Grok Fast | — |
-| **Code/Engineering** | MiniMax 2.5 | Qwen2.5-Coder |
+| **Code/Engineering** | GLM 4.7 Flash | MiniMax 2.5, Qwen Coder |
 | **Quality/Complex** | GLM 4.7 Flash | GLM 4.7, Sonnet 4, GPT-4o |
 | **Vision/Images** | GPT-4o | — |
 
@@ -95,8 +105,8 @@ router output: {"task":"write a poem","model":"openrouter/moonshotai/kimi-k2.5",
 
 **Code task (bug fix):**
 ```
-router output: {"task":"fix the login bug","model":"openrouter/minimax/minimax-m2.5","sessionTarget":"isolated"}
-→ sessions_spawn(task="fix the login bug", model="openrouter/minimax/minimax-m2.5", sessionTarget="isolated")
+router output: {"task":"fix the login bug","model":"openrouter/z-ai/glm-4.7-flash","sessionTarget":"isolated"}
+→ sessions_spawn(task="fix the login bug", model="openrouter/z-ai/glm-4.7-flash", sessionTarget="isolated")
 ```
 
 **Research task:**

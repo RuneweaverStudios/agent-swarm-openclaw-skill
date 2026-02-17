@@ -171,8 +171,8 @@
       "keywords": ["research", "find", "search", "lookup", "web", "information", "fact", "review"]
     },
     "CODE": {
-      "primary": "openrouter/minimax/minimax-m2.5",
-      "fallback": ["openrouter/qwen/qwen3-coder-flash"],
+      "primary": "openrouter/z-ai/glm-4.7-flash",
+      "fallback": ["openrouter/minimax/minimax-m2.5", "openrouter/qwen/qwen3-coder-flash"],
       "keywords": ["code", "function", "class", "debug", "fix", "implement", "refactor", "lint", "test"]
     },
     "QUALITY": {
