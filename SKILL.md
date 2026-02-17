@@ -2,7 +2,7 @@
 name: agent-swarm
 displayName: Agent Swarm | OpenClaw Skill
 description: "IMPORTANT: OpenRouter is required. Routes tasks to the right model and always delegates work through sessions_spawn."
-version: 1.7.4
+version: 1.7.5
 ---
 
 # Agent Swarm | OpenClaw Skill
@@ -14,9 +14,14 @@ It picks the best model for each task, then starts a sub-agent to do the work.
 
 ### IMPORTANT: OpenRouter is required
 
-- You must have an OpenRouter API key set in OpenClaw.
-- Model IDs must use `openrouter/...`.
-- If OpenRouter is not set, delegation will fail.
+**Required Platform Configuration:**
+- **OpenRouter API key**: Must be configured in OpenClaw platform settings (not provided by this skill)
+- **OPENCLAW_HOME** (optional): Environment variable pointing to OpenClaw workspace root. If not set, defaults to `~/.openclaw`
+- **openclaw.json access**: The router reads `tools.exec.host` and `tools.exec.node` from `openclaw.json` (located at `$OPENCLAW_HOME/openclaw.json` or `~/.openclaw/openclaw.json`). Only these two fields are accessed; no gateway secrets or API keys are read.
+
+**Model Requirements:**
+- Model IDs must use `openrouter/...` prefix
+- If OpenRouter is not configured in OpenClaw, delegation will fail
 
 ## Why this helps
 
@@ -129,13 +134,20 @@ Task strings are passed to `sessions_spawn` and then to sub-agents. While the ro
 
 ### File Access
 
-The router reads `openclaw.json` (from `OPENCLAW_HOME` or `~/.openclaw/openclaw.json`) **only** to inspect `tools.exec.host` and `tools.exec.node` configuration. This is necessary to determine the execution environment for spawned sub-agents.
+**Required File Access:**
+- **Read**: `openclaw.json` (located via `OPENCLAW_HOME` environment variable or `~/.openclaw/openclaw.json`)
+  - **Fields accessed**: `tools.exec.host` and `tools.exec.node` only
+  - **Purpose**: Determine execution environment for spawned sub-agents
+  - **Security**: The router does NOT read gateway secrets, API keys, or any other sensitive configuration
 
-**Important:**
-- The router **does not** read gateway secrets, API keys, or any other sensitive configuration
-- Only `tools.exec.host` and `tools.exec.node` are accessed
-- No data is written to `openclaw.json` except via validated config patches (whitelisted to `tools.exec.*` only)
+**Write Access:**
+- **Write**: None (no files are written by this skill)
+- **Config patches**: The skill may return `recommended_config_patch` JSON that the orchestrator can apply, but the skill itself does not write to `openclaw.json`
+
+**Security Guarantees:**
 - The router does not persist, upload, or transmit any tokens or credentials
+- Only `tools.exec.host` and `tools.exec.node` are accessed from `openclaw.json`
+- All file access is read-only except for validated config patches (whitelisted to `tools.exec.*` only)
 
 ### Other Security Notes
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Agent Swarm | OpenClaw Skill — Task-to-LLM routing for OpenClaw
-Version 1.7.4
+Version 1.7.5
 
 Security improvements (v1.7.3+):
 - Input validation for task strings (length limits, null bytes, suspicious patterns)
@@ -10,6 +10,7 @@ Security improvements (v1.7.3+):
 - Comprehensive security documentation
 - Clarified "saves tokens" means cost savings (not token storage)
 - Documented file access scope (only tools.exec.* from openclaw.json)
+- Declared required environment variables and credentials in metadata (v1.7.5)
 
 Fixed bugs from original intelligent-router:
 - Simple indicators now properly invert (high match = SIMPLE, not complex)

@@ -17,6 +17,7 @@ Agent Swarm | OpenClaw Skill routes your OpenClaw tasks to the best LLM for the 
 - FACEPALM troubleshooting integration has been removed - use the separate [FACEPALM](https://github.com/RuneweaverStudios/FACEPALM) skill if troubleshooting is needed
 - **v1.7.3+**: Added comprehensive input validation, config patch validation, and security documentation
 - **v1.7.4+**: Clarified "saves tokens" means cost savings (not token storage), removed hard-coded paths, documented file access scope
+- **v1.7.5+**: Declared required environment variables and credentials in metadata, enhanced requirements documentation
 
 ## Why Agent Swarm
 
@@ -24,7 +25,14 @@ With a single model, OpenClaw can feel slow: you're forced to choose between qua
 
 ## Requirements (critical)
 
+**Platform Configuration Required:**
+- **OpenRouter API key**: Must be configured in OpenClaw platform settings (not provided by this skill)
+- **OPENCLAW_HOME** (optional): Environment variable pointing to OpenClaw workspace root. If not set, defaults to `~/.openclaw`
+- **openclaw.json access**: The router reads `tools.exec.host` and `tools.exec.node` from `openclaw.json` (located at `$OPENCLAW_HOME/openclaw.json` or `~/.openclaw/openclaw.json`). Only these two fields are accessed; no gateway secrets or API keys are read.
+
+**Model Requirements:**
 - **OpenRouter is mandatory** — All model delegation uses OpenRouter (`openrouter/...` prefix). Configure OpenClaw with an OpenRouter API key so one auth profile covers every model.
+- If OpenRouter is not configured in OpenClaw, delegation will fail
 
 ## Security
 
@@ -221,6 +229,21 @@ cost = router.estimate_cost("design landing page")         # → {tier, model, c
 ---
 
 ## Changelog
+
+### v1.7.5 (Credential declarations)
+
+**Metadata and documentation improvements:**
+- Added `requires.env` declaration for `OPENCLAW_HOME` in `_meta.json`
+- Added `requires.platform.openclaw.config` declarations for OpenRouter API key and openclaw.json access
+- Added `fileAccess` section in `_meta.json` documenting read/write access
+- Enhanced requirements documentation in SKILL.md and README.md
+- Explicitly documented that only `tools.exec.host` and `tools.exec.node` are accessed from openclaw.json
+- Clarified that OpenRouter API key must be configured in OpenClaw platform (not provided by skill)
+
+**Technical changes:**
+- Updated `_meta.json` version to 1.7.5
+- Added comprehensive requirements section to SKILL.md
+- Enhanced file access documentation with security guarantees
 
 ### v1.7.4 (Security clarification)
 
