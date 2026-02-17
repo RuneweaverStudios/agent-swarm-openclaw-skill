@@ -321,6 +321,19 @@ class FridayRouter:
             'currency': 'USD'
         }
     
+    @staticmethod
+    def split_into_tasks(message):
+        """Split a message into multiple task strings for parallel spawn.
+        Splits on ' and ', ' then ', '; ', and ' also '. Returns list of non-empty stripped strings.
+        """
+        if not (message or message.strip()):
+            return []
+        text = message.strip()
+        for sep in [' and ', ' then ', '; ', ' also ']:
+            text = text.replace(sep, '\n')
+        parts = [p.strip() for p in text.split('\n') if p.strip()]
+        return parts if len(parts) > 1 else ([message.strip()] if message.strip() else [])
+
     def spawn_agent(self, task, session_target='isolated', label=None, required_exec_host='sandbox', required_exec_node=None):
         """Spawn an OpenClaw sub-agent with the appropriate model.
         Optionally checks tools.exec host/node; on mismatch returns needs_config_patch (no exit).
@@ -400,6 +413,7 @@ def main():
     p_spawn = sub.add_parser("spawn", help="Show spawn params for OpenClaw (sessions_spawn)")
     p_spawn.add_argument("task", type=str, nargs='+', help="The task string for the sub-agent")
     p_spawn.add_argument("--json", action="store_true", help="Machine-readable output for sessions_spawn")
+    p_spawn.add_argument("--multi", action="store_true", help="Split message into parallel tasks (and / then / ;); output array of spawn params")
     p_spawn.add_argument("--required_exec_host", type=str, default="sandbox", help="Required exec host (sandbox or node)")
     p_spawn.add_argument("--required_exec_node", type=str, default=None, help="Required exec node ID or name if host=node")
     p_spawn.add_argument("--label", type=str, default=None, help="Optional label for the sub-agent session")
@@ -486,34 +500,72 @@ def main():
             print("❌ Error: spawn requires a task string", file=sys.stderr)
             sys.exit(1)
 
-        spawn_result = router.spawn_agent(
-            task=task_str,
-            label=args.label,
-            required_exec_host=args.required_exec_host,
-            required_exec_node=args.required_exec_node,
-        )
-
-        if spawn_result.get("needs_config_patch"):
-            if args.json:
-                print(json.dumps(spawn_result))
+        if getattr(args, 'multi', False):
+            # Parallel tasks: split message, spawn each, output array
+            tasks = FridayRouter.split_into_tasks(task_str)
+            if not tasks:
+                tasks = [task_str]
+            results = []
+            config_patch_result = None
+            for i, one_task in enumerate(tasks):
+                spawn_result = router.spawn_agent(
+                    task=one_task,
+                    label=args.label or (f"parallel-{i+1}" if len(tasks) > 1 else None),
+                    required_exec_host=args.required_exec_host,
+                    required_exec_node=args.required_exec_node,
+                )
+                if spawn_result.get("needs_config_patch"):
+                    config_patch_result = spawn_result
+                    break
+                results.append({
+                    "task": spawn_result["params"]["task"],
+                    "model": spawn_result["params"]["model"],
+                    "sessionTarget": spawn_result["params"]["sessionTarget"],
+                })
+                if spawn_result["params"].get("label"):
+                    results[-1]["label"] = spawn_result["params"]["label"]
+            if config_patch_result:
+                if args.json:
+                    print(json.dumps(config_patch_result))
+                else:
+                    print("🚧 Configuration required!\n")
+                    print(f"   {config_patch_result['message']}\n")
+                    print(f"   Recommended patch: {config_patch_result['recommended_config_patch']}")
+            elif args.json:
+                print(json.dumps({"parallel": True, "spawns": results, "count": len(results)}))
             else:
-                print("🚧 Configuration required!\n")
-                print(f"   {spawn_result['message']}\n")
-                print(f"   Recommended patch: {spawn_result['recommended_config_patch']}")
-                print("   Then retry spawn after gateway restarts if needed.")
+                print(f"📋 Parallel tasks ({len(results)}):\n")
+                for i, r in enumerate(results, 1):
+                    print(f"   {i}. {r['task'][:50]}{'...' if len(r['task']) > 50 else ''} → {r['model'].split('/')[-1]}")
         else:
-            if args.json:
-                out = {k: v for k, v in spawn_result["params"].items()}
-                out["recommendation"] = spawn_result["recommendation"]
-                print(json.dumps(out))
+            spawn_result = router.spawn_agent(
+                task=task_str,
+                label=args.label,
+                required_exec_host=args.required_exec_host,
+                required_exec_node=args.required_exec_node,
+            )
+
+            if spawn_result.get("needs_config_patch"):
+                if args.json:
+                    print(json.dumps(spawn_result))
+                else:
+                    print("🚧 Configuration required!\n")
+                    print(f"   {spawn_result['message']}\n")
+                    print(f"   Recommended patch: {spawn_result['recommended_config_patch']}")
+                    print("   Then retry spawn after gateway restarts if needed.")
             else:
-                print(f"📋 Task: {task_str}")
-                print(f"\n🚀 OpenClaw Spawn Params:")
-                print(f"   model: {spawn_result['params']['model']}")
-                print(f"   sessionTarget: {spawn_result['params']['sessionTarget']}")
-                print(f"\n📦 Full recommendation:")
-                print(f"   Tier: {spawn_result['recommendation']['tier']}")
-                print(f"   Model: {spawn_result['recommendation']['model']['alias']}")
+                if args.json:
+                    out = {k: v for k, v in spawn_result["params"].items()}
+                    out["recommendation"] = spawn_result["recommendation"]
+                    print(json.dumps(out))
+                else:
+                    print(f"📋 Task: {task_str}")
+                    print(f"\n🚀 OpenClaw Spawn Params:")
+                    print(f"   model: {spawn_result['params']['model']}")
+                    print(f"   sessionTarget: {spawn_result['params']['sessionTarget']}")
+                    print(f"\n📦 Full recommendation:")
+                    print(f"   Tier: {spawn_result['recommendation']['tier']}")
+                    print(f"   Model: {spawn_result['recommendation']['model']['alias']}")
 
     else:
         print(f"Unknown command: {args.command}", file=sys.stderr)

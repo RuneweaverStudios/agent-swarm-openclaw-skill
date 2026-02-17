@@ -1,12 +1,16 @@
 # Agent Swarm | OpenClaw Skill
 
-**LLM routing and subagent delegation.** Routes each task to the right model, spawns subagents, and saves tokens.
+**LLM routing and subagent delegation.** Routes each task to the right model, spawns subagents, and saves tokens. **Parallel tasks:** one message can spawn multiple subagents at once (e.g. "fix the bug and write a poem" → code + creative in parallel).
 
 **v1.7.0 — This version is tested and working.** COMPLEX tier, absolute paths for TUI delegation. **Security-focused release:** Removed gateway auth secret exposure and gateway management functionality for improved security rating. **Source:** [github.com/RuneweaverStudios/agent-swarm](https://github.com/RuneweaverStudios/agent-swarm).
 
 Agent Swarm | OpenClaw Skill routes your OpenClaw tasks to the best LLM for the job and delegates work to subagents. You save tokens (orchestrator stays on a cheap model; only the task runs on the matched model) and get better results—GLM 4.7 for code, Kimi k2.5 for creative, Grok Fast for research.
 
 **Security improvements in v1.7.0:** Removed gateway auth token/password exposure from router output. Gateway management functionality has been removed - use the separate [gateway-guard](https://clawhub.ai/skills/gateway-guard) skill if gateway auth management is needed. FACEPALM troubleshooting integration has been removed - use the separate [FACEPALM](https://github.com/RuneweaverStudios/FACEPALM) skill if troubleshooting is needed.
+
+## Why Agent Swarm
+
+With a single model, OpenClaw can feel slow: you're forced to choose between quality and cost, and every prompt pays the same price. Agent Swarm removes that tradeoff. The orchestrator stays on a fast, cheap model; only the task at hand runs on the best model for the job. No wasted prompts—efficient routing, not one-size-fits-all. With OpenRouter, replies come back faster and the conversation feels more lively and natural.
 
 ## Requirements
 
@@ -37,6 +41,12 @@ router: {"task":"write a poem","model":"openrouter/moonshotai/kimi-k2.5","sessio
 
 **Exception:** Meta-questions ("what model are you?") you answer yourself.
 
+### Parallel tasks
+
+For one message with multiple tasks, use **`spawn --json --multi "<message>"`**. The router splits on *and*, *then*, *;*, and *also*, classifies each part, and returns `{"parallel": true, "spawns": [{task, model, sessionTarget}, ...], "count": N}`. The orchestrator can then call `sessions_spawn` for each entry and run them in parallel; use subagent-tracker to see progress.
+
+**Example:** `spawn --json --multi "fix the login bug and write a short poem"` → two spawns (e.g. GLM 4.7 for code, Kimi for poem).
+
 ---
 
 ## Quick start
@@ -54,7 +64,7 @@ python scripts/router.py classify "your task description"
 ## Features
 
 - **Orchestrator** — Gemini 2.5 Flash delegates to tier-specific sub-agents via `sessions_spawn`
-- Fixed scoring bugs from original intelligent-router
+- **Parallel tasks** — `spawn --json --multi "task A and task B"` splits on *and* / *then* / *;* and returns an array of spawn params; orchestrator can spawn all and run them in parallel
 - 7 tiers: FAST, REASONING, CREATIVE, RESEARCH, CODE, QUALITY, VISION
 - All models via OpenRouter (single API key)
 - Config-driven: `config.json` for models and routing rules
@@ -101,6 +111,7 @@ python scripts/router.py score "build a React auth system" # Detailed scoring
 python scripts/router.py cost "design a landing page"      # Cost estimate
 python scripts/router.py spawn "research best LLMs"        # Spawn params (human)
 python scripts/router.py spawn --json "research best LLMs" # JSON for sessions_spawn (no gateway secrets)
+python scripts/router.py spawn --json --multi "fix bug and write poem" # Parallel tasks → array of spawns
 python scripts/router.py models                            # List all models
 ```
 

@@ -1,17 +1,19 @@
 ---
 name: agent-swarm
 displayName: Agent Swarm | OpenClaw Skill
-description: LLM routing and subagent delegation for OpenClaw. Routes each task to the right model (code, creative, research) and spawns subagents so you save tokens and get better results.
+description: LLM routing and subagent delegation for OpenClaw. Routes each task to the right model (code, creative, research) and spawns subagents so you save tokens and get better results. Supports parallel tasks—one message can spawn multiple subagents at once (spawn --json --multi).
 version: 1.7.0
 ---
 
 # Agent Swarm | OpenClaw Skill
 
-**LLM routing and subagent delegation.** Routes each task to the right model, spawns subagents, and saves tokens.
+**LLM routing and subagent delegation.** Routes each task to the right model, spawns subagents, and saves tokens. **Parallel tasks:** one message can spawn multiple subagents at once (e.g. "fix the bug and write a poem" → code + creative in parallel); use `spawn --json --multi "<message>"` to get an array of spawn params.
 
 **v1.7.0 — Security-focused release.** COMPLEX tier, absolute paths. Tested and working with OpenClaw TUI delegation. **Removed gateway auth secret exposure and gateway management for improved security.**
 
 Agent Swarm analyzes your tasks and directs them to the best LLM—GLM 4.7 for code, Kimi k2.5 for creative, Grok Fast for research. Eliminate guesswork; route with purpose.
+
+**Why it matters:** With a single model, OpenClaw replies can feel slow—you're stuck choosing between quality and cost. Agent Swarm removes that tradeoff: the orchestrator stays fast and cheap; only each task runs on the right model. No wasted prompts. With OpenRouter, replies are faster and the conversation feels more lively and natural.
 
 **Security improvements in v1.7.0:** Removed gateway auth token/password from router output. Gateway management removed - use [gateway-guard](https://clawhub.ai/skills/gateway-guard) skill separately. FACEPALM integration removed - use [FACEPALM](https://github.com/RuneweaverStudios/FACEPALM) skill separately.
 
@@ -108,6 +110,8 @@ router output: {"task":"write a poem","model":"openrouter/moonshotai/kimi-k2.5",
 router output: {"task":"fix the login bug","model":"openrouter/z-ai/glm-4.7-flash","sessionTarget":"isolated"}
 → sessions_spawn(task="fix the login bug", model="openrouter/z-ai/glm-4.7-flash", sessionTarget="isolated")
 ```
+
+**Parallel tasks (multiple at once):** Run `spawn --json --multi "fix the bug and write a poem"`. Router returns `{"parallel": true, "spawns": [{task, model, sessionTarget}, ...], "count": N}`. Orchestrator calls `sessions_spawn` for each entry; subagents run in parallel. Split separators: *and*, *then*, *;*, *also*.
 
 **Research task:**
 ```
