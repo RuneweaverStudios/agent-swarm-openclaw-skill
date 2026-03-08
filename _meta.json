@@ -1,9 +1,13 @@
 {
-  "ownerId": "kn74sc8m1khsy0rfa1vdgg8dzx813t0t",
+  "schema": "openclaw.skill.v1",
   "slug": "agent-swarm",
-  "displayName": "Agent Swarm | OpenClaw Skill",
+  "name": "agent-swarm",
   "version": "1.7.5",
-  "publishedAt": 1771236743674,
+  "displayName": "Agent Swarm | OpenClaw Skill",
+  "description": "IMPORTANT: OpenRouter is required. Routes tasks to the right model and always delegates work through sessions_spawn.",
+  "author": "RuneweaverStudios",
+  "tags": [],
+  "platform": "openclaw",
   "requires": {
     "env": [
       "OPENCLAW_HOME"
@@ -17,6 +21,8 @@
       }
     }
   },
+  "ownerId": "kn74sc8m1khsy0rfa1vdgg8dzx813t0t",
+  "publishedAt": 1771236743674,
   "fileAccess": {
     "read": [
       "openclaw.json (tools.exec.host and tools.exec.node only)"
