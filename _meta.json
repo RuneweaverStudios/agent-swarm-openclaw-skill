@@ -6,7 +6,13 @@
   "displayName": "Agent Swarm | OpenClaw Skill",
   "description": "IMPORTANT: OpenRouter is required. Routes tasks to the right model and always delegates work through sessions_spawn.",
   "author": "RuneweaverStudios",
-  "tags": [],
+  "tags": [
+    "routing",
+    "orchestration",
+    "subagents",
+    "openrouter",
+    "openclaw"
+  ],
   "platform": "openclaw",
   "requires": {
     "env": [
