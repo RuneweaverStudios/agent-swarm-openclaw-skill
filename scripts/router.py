@@ -181,7 +181,7 @@ def get_current_openclaw_config():
     }
 
 
-class FridayRouter:
+class AgentSwarmRouter:
     """Austin's intelligent model router with fixed scoring."""
     
     # Simple indicators that suggest SIMPLE/Fast tasks (NOT inverted anymore)
@@ -590,6 +590,10 @@ class FridayRouter:
         }
 
 
+# Backward compatibility alias
+FridayRouter = AgentSwarmRouter
+
+
 def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(description="Agent Swarm | OpenClaw Skill - Task-to-LLM routing for OpenClaw.")
@@ -620,7 +624,7 @@ def main():
     
     args = parser.parse_args()
 
-    router = FridayRouter()
+    router = AgentSwarmRouter()
 
     task_str = ' '.join(args.task) if 'task' in args and args.task else ""
 
@@ -702,7 +706,7 @@ def main():
 
         if getattr(args, 'multi', False):
             # Parallel tasks: split message, spawn each, output array
-            tasks = FridayRouter.split_into_tasks(task_str)
+            tasks = AgentSwarmRouter.split_into_tasks(task_str)
             if not tasks:
                 tasks = [task_str]
             results = []

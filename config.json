@@ -1,7 +1,7 @@
 {
   "name": "Agent Swarm | OpenClaw Skill",
   "description": "LLM routing and subagent delegation for OpenClaw. Routes each task to the right model (code, creative, research), spawns subagents, and reduces API costs by using cheaper models for simple tasks. Supports parallel tasks (spawn --json --multi).",
-  "version": "1.7.8",
+  "version": "1.8.0",
   "author": "Austin",
   "default_model": "openrouter/google/gemini-2.5-flash",
   "models": [
@@ -352,21 +352,6 @@
         "system",
         "comprehensive",
         "thorough"
-      ]
-    },
-    "COMPLEX": {
-      "primary": "openrouter/z-ai/glm-4.7-flash",
-      "fallback": [
-        "openrouter/z-ai/glm-4.7",
-        "openrouter/anthropic/claude-sonnet-4",
-        "openrouter/anthropic/claude-3.5-sonnet",
-        "openrouter/openai/gpt-4o"
-      ],
-      "keywords": [
-        "complex",
-        "architecture",
-        "design",
-        "system"
       ]
     },
     "VISION": {

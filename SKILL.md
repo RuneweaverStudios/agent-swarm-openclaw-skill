@@ -2,7 +2,7 @@
 name: agent-swarm
 displayName: Agent Swarm | OpenClaw Skill
 description: "IMPORTANT: OpenRouter is required. Routes tasks to the right model and always delegates work through sessions_spawn. Includes prompt-injection rejection."
-version: 1.7.8
+version: 1.8.0
 ---
 
 # Agent Swarm | OpenClaw Skill
@@ -79,13 +79,45 @@ python scripts/router.py spawn --json --multi "fix bug and write poem"
 python scripts/router.py models
 ```
 
-## Config basics
+## Config Reference
 
-Edit `config.json` to change routing:
+Edit `config.json` to change routing. All fields are optional and fall back to defaults.
 
-- `default_model` = orchestrator default
-- `routing_rules.<TIER>.primary` = main model for tier
-- `routing_rules.<TIER>.fallback` = backups
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `default_model` | string | `openrouter/google/gemini-2.5-flash` | Orchestrator default model |
+| `models[].id` | string | -- | Full model identifier (`openrouter/...`) |
+| `models[].alias` | string | -- | Human-readable name |
+| `models[].tier` | string | -- | Routing tier (FAST, CODE, QUALITY, etc.) |
+| `routing_rules.<TIER>.primary` | string | -- | Primary model for this tier |
+| `routing_rules.<TIER>.fallback` | string[] | `[]` | Fallback models in priority order |
+| `routing_rules.<TIER>.keywords` | string[] | `[]` | Keywords that trigger this tier |
+
+### Tiers
+
+| Tier | Primary Model | Use Case |
+|------|---------------|----------|
+| FAST | Gemini 2.5 Flash | Quick lookups, status checks, summaries |
+| REASONING | GLM-5 | Logic, math, step-by-step analysis |
+| CREATIVE | Kimi k2.5 | Writing, UI/UX design, frontend |
+| RESEARCH | Grok Fast | Fact-finding, web lookups |
+| CODE | GLM-4.7 Flash | Code generation, debugging, refactoring |
+| QUALITY | GLM-4.7 Flash | Complex architecture, comprehensive solutions |
+| VISION | GPT-4o | Image analysis, screenshots |
+
+## Usage Examples
+
+### Classify a task without spawning
+```bash
+python3 scripts/router.py classify "refactor the database module"
+# Output: CODE (confidence: 0.85)
+```
+
+### Show all configured models
+```bash
+python3 scripts/router.py models --json
+# Output: JSON array of all model configurations with tiers and costs
+```
 
 ## Security
 
