@@ -1,8 +1,8 @@
 ---
 name: agent-swarm
 displayName: Agent Swarm | OpenClaw Skill
-description: "IMPORTANT: OpenRouter is required. Routes tasks to the right model and always delegates work through sessions_spawn."
-version: 1.7.5
+description: "IMPORTANT: OpenRouter is required. Routes tasks to the right model and always delegates work through sessions_spawn. Includes prompt-injection rejection."
+version: 1.7.8
 ---
 
 # Agent Swarm | OpenClaw Skill
@@ -16,7 +16,7 @@ It picks the best model for each task, then starts a sub-agent to do the work.
 
 **Required Platform Configuration:**
 - **OpenRouter API key**: Must be configured in OpenClaw platform settings (not provided by this skill)
-- **OPENCLAW_HOME** (optional): Environment variable pointing to OpenClaw workspace root. If not set, defaults to `~/.openclaw`
+- **OPENCLAW_HOME** (optional): Environment variable pointing to OpenClaw workspace root. If not set, defaults to `~/.openclaw`. This variable is never required; the skill works without it
 - **openclaw.json access**: The router reads `tools.exec.host` and `tools.exec.node` from `openclaw.json` (located at `$OPENCLAW_HOME/openclaw.json` or `~/.openclaw/openclaw.json`). Only these two fields are accessed; no gateway secrets or API keys are read.
 
 **Model Requirements:**
@@ -125,9 +125,15 @@ The `recommended_config_patch` only modifies safe fields:
 
 All config patches are validated before being returned. The orchestrator should validate patches again before applying them to `openclaw.json`.
 
-### Prompt Injection Mitigation
+### Prompt Injection Rejection (v1.7.6+)
 
-Task strings are passed to `sessions_spawn` and then to sub-agents. While the router validates input format, prompt injection protection is primarily the responsibility of:
+The router actively rejects task strings that contain known prompt-injection patterns. This includes:
+
+- System/instruction override attempts (`ignore previous instructions`, `you are now`, `system:`, etc.)
+- Role impersonation (`[SYSTEM]`, `<|im_start|>system`, `### Instruction:`, etc.)
+- Delimiter injection (attempts to break out of the task context)
+
+If a prompt-injection pattern is detected, the router returns an error and refuses to route the task. This is a defense-in-depth measure in addition to:
 1. The orchestrator (validating task strings)
 2. The sub-agent LLM (resisting prompt injection)
 3. The OpenClaw platform (sanitizing `sessions_spawn` inputs)

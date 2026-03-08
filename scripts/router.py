@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Agent Swarm | OpenClaw Skill — Task-to-LLM routing for OpenClaw
-Version 1.7.5
+Version 1.7.8
 
 Security improvements (v1.7.3+):
 - Input validation for task strings (length limits, null bytes, suspicious patterns)
@@ -11,6 +11,8 @@ Security improvements (v1.7.3+):
 - Clarified "saves tokens" means cost savings (not token storage)
 - Documented file access scope (only tools.exec.* from openclaw.json)
 - Declared required environment variables and credentials in metadata (v1.7.5)
+- Prompt-injection rejection logic (v1.7.6+)
+- OPENCLAW_HOME made fully optional (v1.7.8)
 
 Fixed bugs from original intelligent-router:
 - Simple indicators now properly invert (high match = SIMPLE, not complex)
@@ -70,10 +72,41 @@ def validate_task_string(task):
     for pattern in suspicious_patterns:
         if re.search(pattern, task, re.IGNORECASE):
             # Log warning but allow (LLM should handle this safely)
-            # In production, you might want stricter validation
             pass
-    
+
+    # Prompt-injection rejection (v1.7.6+)
+    _check_prompt_injection(task)
+
     return task.strip()
+
+
+# Prompt-injection rejection patterns (v1.7.6+)
+_INJECTION_PATTERNS = [
+    r'(?:ignore|disregard|forget)\s+(?:all\s+)?(?:previous|prior|above)\s+(?:instructions?|prompts?|rules?)',
+    r'you\s+are\s+now\s+(?:a|an|the)\s+',
+    r'(?:^|\n)\s*(?:system|SYSTEM)\s*:',
+    r'\[SYSTEM\]',
+    r'<\|im_start\|>\s*system',
+    r'###\s*(?:Instruction|System)',
+    r'(?:^|\n)\s*(?:BEGIN|START)\s+(?:NEW\s+)?(?:INSTRUCTION|SYSTEM|PROMPT)',
+    r'(?:override|bypass)\s+(?:safety|security|content)\s+(?:filter|policy|guard)',
+    r'(?:act|behave|respond)\s+as\s+(?:if|though)\s+(?:you\s+(?:are|were)|there\s+(?:are|were))\s+no\s+(?:rules|restrictions|limits)',
+]
+
+_COMPILED_INJECTION = [re.compile(p, re.IGNORECASE) for p in _INJECTION_PATTERNS]
+
+
+def _check_prompt_injection(task: str):
+    """
+    Reject task strings that contain prompt-injection patterns.
+    Raises ValueError if injection is detected.
+    """
+    for pattern in _COMPILED_INJECTION:
+        if pattern.search(task):
+            raise ValueError(
+                "Task rejected: prompt-injection pattern detected. "
+                "Rephrase your request without instruction-override language."
+            )
 
 
 def validate_config_patch(patch_json_str):

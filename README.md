@@ -7,7 +7,7 @@
 
 **LLM routing and subagent delegation.** Routes each task to the right model, spawns subagents, and reduces API costs by using cheaper models for simple tasks. **Parallel tasks:** one message can spawn multiple subagents at once (e.g. "fix the bug and write a poem" → code + creative in parallel).
 
-**v1.7.0 — This version is tested and working.** COMPLEX tier, absolute paths for TUI delegation. **Security-focused release:** Removed gateway auth secret exposure and gateway management functionality for improved security rating. **Source:** [github.com/RuneweaverStudios/agent-swarm](https://github.com/RuneweaverStudios/agent-swarm).
+**v1.7.8 — Current stable release.** COMPLEX tier, absolute paths for TUI delegation. Prompt-injection rejection (v1.7.6+), OPENCLAW_HOME fully optional. **Source:** [github.com/RuneweaverStudios/agent-swarm](https://github.com/RuneweaverStudios/agent-swarm).
 
 Agent Swarm | OpenClaw Skill routes your OpenClaw tasks to the best LLM for the job and delegates work to subagents. You save API costs (orchestrator stays on a cheap model; only the task runs on the matched model) and get better results—GLM 4.7 for code, Kimi k2.5 for creative, Grok Fast for research.
 
@@ -18,6 +18,8 @@ Agent Swarm | OpenClaw Skill routes your OpenClaw tasks to the best LLM for the 
 - **v1.7.3+**: Added comprehensive input validation, config patch validation, and security documentation
 - **v1.7.4+**: Clarified "saves tokens" means cost savings (not token storage), removed hard-coded paths, documented file access scope
 - **v1.7.5+**: Declared required environment variables and credentials in metadata, enhanced requirements documentation
+- **v1.7.6+**: Added prompt-injection rejection logic that actively blocks known injection patterns
+- **v1.7.8**: OPENCLAW_HOME made fully optional (defaults to ~/.openclaw), version bump
 
 ## Why Agent Swarm
 
@@ -72,9 +74,15 @@ The `recommended_config_patch` only modifies safe fields:
 
 All config patches are validated before being returned. The orchestrator should validate patches again before applying them to `openclaw.json`.
 
-### Prompt Injection Mitigation
+### Prompt Injection Rejection (v1.7.6+)
 
-Task strings are passed to `sessions_spawn` and then to sub-agents. While the router validates input format, prompt injection protection is primarily the responsibility of:
+The router actively rejects task strings that contain known prompt-injection patterns:
+
+- System/instruction override attempts (`ignore previous instructions`, `you are now`, etc.)
+- Role impersonation (`[SYSTEM]`, `<|im_start|>system`, `### Instruction:`, etc.)
+- Delimiter injection and safety bypass language
+
+If a prompt-injection pattern is detected, the router raises a `ValueError` and refuses to route the task. This is a defense-in-depth measure alongside:
 1. The orchestrator (validating task strings)
 2. The sub-agent LLM (resisting prompt injection)
 3. The OpenClaw platform (sanitizing `sessions_spawn` inputs)
@@ -229,6 +237,18 @@ cost = router.estimate_cost("design landing page")         # → {tier, model, c
 ---
 
 ## Changelog
+
+### v1.7.8 (Optional OPENCLAW_HOME, version sync)
+
+- OPENCLAW_HOME is now fully optional everywhere (defaults to `~/.openclaw`)
+- Removed stale REVIEW-name-conformity.md (referenced obsolete naming from v1.5.0)
+- Version sync across _meta.json, SKILL.md, and router.py
+
+### v1.7.6 (Prompt-injection rejection)
+
+- Added `_check_prompt_injection()` with compiled regex patterns that actively reject known injection vectors
+- Patterns cover: instruction override, role impersonation, delimiter injection, safety bypass
+- Raises `ValueError` on detection (stops routing, does not silently pass)
 
 ### v1.7.5 (Credential declarations)
 

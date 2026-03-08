@@ -2,22 +2,22 @@
   "schema": "openclaw.skill.v1",
   "slug": "agent-swarm",
   "name": "agent-swarm",
-  "version": "1.7.5",
+  "version": "1.7.8",
   "displayName": "Agent Swarm | OpenClaw Skill",
-  "description": "IMPORTANT: OpenRouter is required. Routes tasks to the right model and always delegates work through sessions_spawn.",
+  "description": "Routes tasks to the right LLM model and delegates work through sessions_spawn. Requires OpenRouter. Includes prompt-injection rejection and input validation.",
   "author": "RuneweaverStudios",
+  "main": "scripts/router.py",
   "tags": [
     "routing",
     "orchestration",
     "subagents",
     "openrouter",
-    "openclaw"
+    "openclaw",
+    "security"
   ],
   "platform": "openclaw",
   "requires": {
-    "env": [
-      "OPENCLAW_HOME"
-    ],
+    "env": [],
     "platform": {
       "openclaw": {
         "config": {
