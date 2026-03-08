@@ -204,9 +204,9 @@ python scripts/router.py models                            # List all models
 ## In-code usage
 
 ```python
-from scripts.router import FridayRouter
+from scripts.router import AgentSwarmRouter
 
-router = FridayRouter()
+router = AgentSwarmRouter()
 
 default = router.get_default_model()
 tier = router.classify_task("check server status")        # → "FAST"
@@ -327,3 +327,16 @@ cost = router.estimate_cost("design landing page")         # → {tier, model, c
 ## License / author
 
 Austin. Part of the OpenClaw skills ecosystem.
+
+---
+
+## When to use this vs agent-swarm
+
+| Feature | agent-swarm-openclaw-skill | agent-swarm |
+|---------|---------------------------|-------------|
+| **Provider** | OpenRouter only | OpenRouter only |
+| **Slug** | `agent-swarm` (ClawHub published) | `agent-swarm` (source repo) |
+| **Use case** | Install from ClawHub for production use | Clone from GitHub for development/contribution |
+| **Updates** | Receives ClawHub published updates | Manual git pull |
+
+**Use `agent-swarm-openclaw-skill`** if you want the ClawHub-published, stable version with verified metadata and ownerId. **Use `agent-swarm`** if you want to contribute, customize, or run the latest development version directly from source.
